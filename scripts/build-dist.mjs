@@ -23,11 +23,15 @@ const PUBLIC = [
   'data/roles.json',
 ];
 
+// 美术素材整目录拷贝：manifest + generic/characters/cards。
+const ASSETS_DIR = 'assets';
+
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 
 for (const rel of PUBLIC) {
   await cp(join(ROOT, rel), join(DIST, rel));
 }
+await cp(join(ROOT, ASSETS_DIR), join(DIST, ASSETS_DIR), { recursive: true });
 
-console.log(`dist/ 已生成，共 ${PUBLIC.length} 个公开文件`);
+console.log(`dist/ 已生成：${PUBLIC.length} 个公开文件 + ${ASSETS_DIR}/ 素材目录`);

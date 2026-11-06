@@ -1,0 +1,517 @@
+{
+  "_comment": "素材清单，由 `node scripts/make-asset-manifest.mjs` 生成。status=ready 表示有专属 PNG；status=generic 表示该槽位没有专属图，渲染时用 fallback 指向的通用徽记。新增角色或牌型后重跑本脚本即可自动纳管，无需补图。",
+  "generatedBy": "scripts/make-asset-manifest.mjs",
+  "display": {
+    "characterAvatar": {
+      "box": 64,
+      "shape": "circle",
+      "inset": 0.88,
+      "objectPosition": "50% 34%"
+    },
+    "cardIcon": {
+      "box": 24
+    },
+    "chipIcon": {
+      "box": 16
+    },
+    "pileBack": {
+      "width": 56,
+      "height": 76
+    }
+  },
+  "entries": [
+    {
+      "kind": "generic",
+      "id": "role_frontier_lab",
+      "name": "前沿实验室 / Frontier Lab",
+      "file": "assets/generic/role_frontier_lab.png",
+      "status": "ready",
+      "slot": "身份徽记：开局抽身份与结算揭示时显示，与角色立绘是两条独立的轴"
+    },
+    {
+      "kind": "generic",
+      "id": "role_licensed_partner",
+      "name": "授权被许可方 / Licensed Partner",
+      "file": "assets/generic/role_licensed_partner.png",
+      "status": "ready",
+      "slot": "身份徽记：开局抽身份与结算揭示时显示，与角色立绘是两条独立的轴"
+    },
+    {
+      "kind": "generic",
+      "id": "role_distiller",
+      "name": "未授权蒸馏者 / Unauthorized Distiller",
+      "file": "assets/generic/role_distiller.png",
+      "status": "ready",
+      "slot": "身份徽记：开局抽身份与结算揭示时显示，与角色立绘是两条独立的轴"
+    },
+    {
+      "kind": "generic",
+      "id": "role_lone_wolf",
+      "name": "开源独狼 / Open-Weights Lone Wolf",
+      "file": "assets/generic/role_lone_wolf.png",
+      "status": "ready",
+      "slot": "身份徽记：开局抽身份与结算揭示时显示，与角色立绘是两条独立的轴"
+    },
+    {
+      "kind": "generic",
+      "id": "kind_attack",
+      "name": "attack",
+      "file": "assets/generic/kind_attack.png",
+      "status": "ready",
+      "slot": "牌型通用徽记：卡面角标与装备 chip 复用"
+    },
+    {
+      "kind": "generic",
+      "id": "kind_defense",
+      "name": "defense",
+      "file": "assets/generic/kind_defense.png",
+      "status": "ready",
+      "slot": "牌型通用徽记：卡面角标与装备 chip 复用"
+    },
+    {
+      "kind": "generic",
+      "id": "kind_equipment",
+      "name": "equipment",
+      "file": "assets/generic/kind_equip.png",
+      "status": "ready",
+      "slot": "牌型通用徽记：卡面角标与装备 chip 复用"
+    },
+    {
+      "kind": "generic",
+      "id": "kind_action",
+      "name": "action",
+      "file": "assets/generic/kind_action.png",
+      "status": "ready",
+      "slot": "牌型通用徽记：卡面角标与装备 chip 复用"
+    },
+    {
+      "kind": "generic",
+      "id": "card_back",
+      "name": "牌背",
+      "file": "assets/generic/card_back.png",
+      "status": "ready",
+      "slot": "牌堆 56x76px 与手牌背面"
+    },
+    {
+      "kind": "generic",
+      "id": "title",
+      "name": "标题图",
+      "file": "assets/generic/title.png",
+      "status": "ready",
+      "slot": "开场遮罩与顶栏"
+    },
+    {
+      "kind": "generic",
+      "id": "char_default",
+      "name": "默认角色立绘",
+      "file": "assets/generic/char_default.png",
+      "status": "ready",
+      "slot": "所有没有专属立绘的角色共用这张默认头像"
+    },
+    {
+      "kind": "character",
+      "id": "gpt_4o",
+      "name": "GPT-4o",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "全模态"
+    },
+    {
+      "kind": "character",
+      "id": "o3",
+      "name": "o3",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "无上限推理"
+    },
+    {
+      "kind": "character",
+      "id": "gpt_4_5",
+      "name": "GPT-4.5",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "成本外溢"
+    },
+    {
+      "kind": "character",
+      "id": "sky_voice",
+      "name": "ChatGPT 语音模式 (Sky)",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "音色风波"
+    },
+    {
+      "kind": "character",
+      "id": "sora",
+      "name": "Sora",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "数据回收"
+    },
+    {
+      "kind": "character",
+      "id": "claude_3_5_sonnet",
+      "name": "Claude 3.5 Sonnet",
+      "file": "assets/characters/claude_3_5_sonnet.png",
+      "status": "ready",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "Constitutional AI"
+    },
+    {
+      "kind": "character",
+      "id": "deepseek_r1",
+      "name": "DeepSeek-R1",
+      "file": "assets/characters/deepseek_r1.png",
+      "status": "ready",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "开源思维链"
+    },
+    {
+      "kind": "character",
+      "id": "llama_3_1_405b",
+      "name": "Llama 3.1 405B",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "许可护城河"
+    },
+    {
+      "kind": "character",
+      "id": "gemini_2_0_pro",
+      "name": "Gemini 2.0 Pro",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "超长上下文"
+    },
+    {
+      "kind": "character",
+      "id": "grok_2",
+      "name": "Grok-2",
+      "file": "assets/characters/grok_2.png",
+      "status": "ready",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "无过滤"
+    },
+    {
+      "kind": "character",
+      "id": "qwen2_5_72b",
+      "name": "Qwen2.5-72B",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "全尺寸开源"
+    },
+    {
+      "kind": "character",
+      "id": "kimi_k2",
+      "name": "Kimi K2",
+      "file": "assets/characters/kimi_k2.png",
+      "status": "ready",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "长文本速读"
+    },
+    {
+      "kind": "character",
+      "id": "mixtral_8x22b",
+      "name": "Mixtral 8x22B",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "MoE 路由"
+    },
+    {
+      "kind": "character",
+      "id": "glm_4",
+      "name": "GLM-4",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "学术溯源"
+    },
+    {
+      "kind": "character",
+      "id": "phi_4",
+      "name": "Phi-4",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "端侧自足"
+    },
+    {
+      "kind": "character",
+      "id": "gemma_3",
+      "name": "Gemma 3",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/char_default.png",
+      "skill": "回收再利用"
+    },
+    {
+      "kind": "card",
+      "id": "attack",
+      "name": "蒸馏指控",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_attack.png",
+      "count": 29
+    },
+    {
+      "kind": "card",
+      "id": "defense",
+      "name": "合规声明",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_defense.png",
+      "count": 23
+    },
+    {
+      "kind": "card",
+      "id": "funding",
+      "name": "融资到账",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 7
+    },
+    {
+      "kind": "card",
+      "id": "scaling_law",
+      "name": "Scaling Law",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 3
+    },
+    {
+      "kind": "card",
+      "id": "poach",
+      "name": "挖角研究员",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "cease_and_desist",
+      "name": "律师函 C&D",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "account_ban",
+      "name": "账号封禁",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "compute_cluster",
+      "name": "算力集群",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "open_weights_release",
+      "name": "开源发布会",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "price_war",
+      "name": "API 降价战",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "regulator_inquiry",
+      "name": "监管问询",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "benchmark_duel",
+      "name": "Benchmark 对决",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "hf_listing",
+      "name": "HuggingFace 上架",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "rlhf_alignment",
+      "name": "RLHF 对齐",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "agi_claim",
+      "name": "AGI 宣言",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "benchmark_gaming",
+      "name": "榜单刷分",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_action.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "weapon_code_agent",
+      "name": "Code Agent",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "weapon_reasoning_cluster",
+      "name": "推理集群",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "weapon_multimodal_base",
+      "name": "多模态基座",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "weapon_full_stack_cloud",
+      "name": "全栈云平台",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "weapon_on_device",
+      "name": "端侧小模型",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "distance_long_context",
+      "name": "长上下文 1M",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "distance_proprietary_channel",
+      "name": "专有分发渠道",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 1
+    },
+    {
+      "kind": "card",
+      "id": "task_chat",
+      "name": "Chat 产品",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "task_code",
+      "name": "Code 产品",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "task_office",
+      "name": "办公套件",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "task_tts",
+      "name": "TTS 语音合成",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "task_stt",
+      "name": "STT 语音识别",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    },
+    {
+      "kind": "card",
+      "id": "task_iti",
+      "name": "图生图 ITI",
+      "file": null,
+      "status": "generic",
+      "fallback": "assets/generic/kind_equip.png",
+      "count": 2
+    }
+  ]
+}
