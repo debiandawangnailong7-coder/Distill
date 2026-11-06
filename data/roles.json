@@ -1,0 +1,56 @@
+{
+  "roles": [
+    {
+      "id": "frontier_lab",
+      "name": "前沿实验室",
+      "en": "Frontier Lab",
+      "analog": "sheriff",
+      "public": true,
+      "computeBonus": 1,
+      "objective": "消灭所有未授权蒸馏者与开源独狼",
+      "win": "all_distillers_and_lone_wolf_dead",
+      "penalty": "亲手击杀授权被许可方时，立刻弃掉全部手牌与全部装备"
+    },
+    {
+      "id": "licensed_partner",
+      "name": "授权被许可方",
+      "en": "Licensed Partner",
+      "analog": "deputy",
+      "public": false,
+      "computeBonus": 0,
+      "objective": "保护前沿实验室，消灭所有未授权蒸馏者与开源独狼",
+      "win": "all_distillers_and_lone_wolf_dead"
+    },
+    {
+      "id": "distiller",
+      "name": "未授权蒸馏者",
+      "en": "Unauthorized Distiller",
+      "analog": "outlaw",
+      "public": false,
+      "computeBonus": 0,
+      "objective": "干掉前沿实验室，即使自己已出局也算获胜",
+      "win": "frontier_lab_dead"
+    },
+    {
+      "id": "lone_wolf",
+      "name": "开源独狼",
+      "en": "Open-Weights Lone Wolf",
+      "analog": "renegade",
+      "public": false,
+      "computeBonus": 0,
+      "objective": "成为唯一存活的玩家",
+      "win": "last_one_standing"
+    }
+  ],
+  "seating": {
+    "4": { "frontier_lab": 1, "licensed_partner": 0, "distiller": 2, "lone_wolf": 1 },
+    "5": { "frontier_lab": 1, "licensed_partner": 1, "distiller": 2, "lone_wolf": 1 },
+    "6": { "frontier_lab": 1, "licensed_partner": 2, "distiller": 2, "lone_wolf": 1 },
+    "7": { "frontier_lab": 1, "licensed_partner": 2, "distiller": 3, "lone_wolf": 1 }
+  },
+  "rules": {
+    "killReward": { "target": "distiller", "draw": 3 },
+    "standardDeckSize": 102,
+    "sevenPlayerBonus": { "attack": 4, "defense": 4 }
+  }
+}

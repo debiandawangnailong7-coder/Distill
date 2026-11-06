@@ -1,0 +1,610 @@
+{
+  "_comment": "牌堆设计面。改动此文件后运行 `node scripts/build-deck.mjs` 重新生成 data/deck.json。faces 字段可显式指定花色点数，缺省时由构建脚本按 suits 偏好轮转分配。",
+  "cardTypes": [
+    {
+      "id": "attack",
+      "name": "蒸馏指控",
+      "en": "Distill!",
+      "category": "event",
+      "kind": "attack",
+      "count": 29,
+      "suits": [
+        "diamond",
+        "club",
+        "spade",
+        "heart"
+      ],
+      "target": "player_in_range",
+      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。",
+      "flavors": [
+        "ToS 第七条",
+        "训练数据溯源",
+        "蒸馏自 R1？",
+        "榜单刷分质疑",
+        "基准污染",
+        "API 输出爬取",
+        "影子模型",
+        "能力复刻",
+        "合成数据？",
+        "越狱提示词",
+        "系统提示泄露",
+        "逆向工程",
+        "输出对齐抄袭",
+        "权重相似度过高",
+        "拒绝披露数据来源",
+        "影子评估",
+        "蒸馏管线曝光",
+        "许可违约",
+        "商标混淆",
+        "数据爬虫封禁",
+        "开源不等于免费蒸馏",
+        "你的 loss 曲线不对劲",
+        "参数规模对不上",
+        "你的 tokenizer 露馅了",
+        "输出分布雷同",
+        "教师模型是谁",
+        "拒绝公开评测脚本",
+        "蒸馏管线截图流出",
+        "我们保留诉讼权利"
+      ]
+    },
+    {
+      "id": "defense",
+      "name": "合规声明",
+      "en": "Compliant!",
+      "category": "event",
+      "kind": "defense",
+      "count": 23,
+      "suits": [
+        "spade",
+        "heart",
+        "club",
+        "diamond"
+      ],
+      "target": "self",
+      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。",
+      "flavors": [
+        "fair use",
+        "合成数据",
+        "已获授权",
+        "独立复现",
+        "公开领域",
+        "数据已脱敏",
+        "我们从零训练",
+        "律师已审阅",
+        "合理的引用",
+        "仅用于研究",
+        "巧合而已",
+        "训练日志在此",
+        "我们买过数据集",
+        "那是我们自己想出来的",
+        "那是公开数据集",
+        "我们做过数据清洗",
+        "只是能力对齐",
+        "论文里写清楚了",
+        "复现是科学传统",
+        "权重并没有被复制",
+        "服务条款管不到我",
+        "有第三方审计",
+        "这属于合法的逆向工程"
+      ]
+    },
+    {
+      "id": "funding",
+      "name": "融资到账",
+      "en": "Funding Round",
+      "category": "event",
+      "kind": "heal",
+      "count": 7,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "target": "self_or_dying",
+      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
+      "params": {
+        "heal": 1
+      }
+    },
+    {
+      "id": "scaling_law",
+      "name": "Scaling Law",
+      "category": "event",
+      "kind": "draw",
+      "count": 3,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "target": "self",
+      "effect": "摸 2 张牌。",
+      "params": {
+        "draw": 2
+      }
+    },
+    {
+      "id": "poach",
+      "name": "挖角研究员",
+      "en": "Poach",
+      "category": "event",
+      "kind": "steal",
+      "count": 2,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "target": "player_within_distance",
+      "effect": "从有效距离 ≤1 的玩家处抽取一张牌（手牌随机抽，装备任选）。",
+      "params": {
+        "maxDistance": 1
+      }
+    },
+    {
+      "id": "cease_and_desist",
+      "name": "律师函 C&D",
+      "category": "event",
+      "kind": "force_discard",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "target": "player_within_distance",
+      "effect": "令有效距离 ≤1 的一名玩家弃掉一张牌。",
+      "params": {
+        "maxDistance": 1
+      }
+    },
+    {
+      "id": "account_ban",
+      "name": "账号封禁",
+      "en": "Account Banned",
+      "category": "event",
+      "kind": "jail",
+      "count": 2,
+      "suits": [
+        "spade",
+        "club",
+        "heart",
+        "diamond"
+      ],
+      "target": "any_player_except_lab",
+      "effect": "置于目标面前。其下个判定阶段进行判定：♠ 或 ♣ 则跳过摸牌与出牌阶段。场上同时只能存在 1 张。",
+      "params": {
+        "judgeFailSuits": [
+          "spade",
+          "club"
+        ]
+      }
+    },
+    {
+      "id": "compute_cluster",
+      "name": "算力集群",
+      "en": "GPU Cluster",
+      "category": "event",
+      "kind": "draw",
+      "count": 2,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "target": "self",
+      "effect": "摸 3 张牌。",
+      "params": {
+        "draw": 3
+      }
+    },
+    {
+      "id": "open_weights_release",
+      "name": "开源发布会",
+      "en": "Open Weights Release",
+      "category": "event",
+      "kind": "mass_heal",
+      "count": 1,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "target": "all_players",
+      "effect": "所有玩家（含你）回复 1 点算力。",
+      "params": {
+        "heal": 1
+      }
+    },
+    {
+      "id": "price_war",
+      "name": "API 降价战",
+      "en": "Price War",
+      "category": "event",
+      "kind": "mass_attack",
+      "count": 2,
+      "suits": [
+        "spade",
+        "club",
+        "diamond",
+        "heart"
+      ],
+      "target": "all_others",
+      "effect": "你之外的所有玩家各失去 1 点算力，可分别用「合规声明」抵消。",
+      "params": {
+        "damage": 1
+      }
+    },
+    {
+      "id": "regulator_inquiry",
+      "name": "监管问询",
+      "en": "Regulator Inquiry",
+      "category": "event",
+      "kind": "mass_challenge",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "target": "all_others",
+      "effect": "从你左侧开始，每名玩家必须打出一张「蒸馏指控」，否则失去 1 点算力。",
+      "params": {
+        "damage": 1,
+        "requiredCard": "attack"
+      }
+    },
+    {
+      "id": "benchmark_duel",
+      "name": "Benchmark 对决",
+      "en": "Benchmark Duel",
+      "category": "event",
+      "kind": "duel",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "target": "any_player",
+      "effect": "目标先打出一张「蒸馏指控」，然后轮到你，交替进行。先放弃的一方失去 1 点算力。",
+      "params": {
+        "damage": 1
+      }
+    },
+    {
+      "id": "hf_listing",
+      "name": "HuggingFace 上架",
+      "en": "HF Listing",
+      "category": "event",
+      "kind": "general_store",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "target": "all_players",
+      "effect": "翻开等同于存活玩家数的牌，从你开始逆时针各选一张收入手牌。"
+    },
+    {
+      "id": "rlhf_alignment",
+      "name": "RLHF 对齐",
+      "en": "RLHF Alignment",
+      "category": "equipment",
+      "slot": "support",
+      "kind": "barrel",
+      "count": 1,
+      "suits": [
+        "club",
+        "spade",
+        "heart",
+        "diamond"
+      ],
+      "effect": "当需要打出「合规声明」时，你可以改为进行判定：♥ 则视为你打出了「合规声明」。",
+      "params": {
+        "judgeSuccessSuit": "heart"
+      }
+    },
+    {
+      "id": "agi_claim",
+      "name": "AGI 宣言",
+      "en": "AGI Claim",
+      "category": "event",
+      "kind": "dynamite",
+      "count": 1,
+      "suits": [
+        "spade",
+        "club",
+        "heart",
+        "diamond"
+      ],
+      "target": "self",
+      "effect": "置于自己面前。判定阶段进行判定：♠2–♠9 则失去 3 点算力并弃掉此牌；否则传给下家。场上同时只能存在 1 张。",
+      "params": {
+        "damage": 3,
+        "judgeFailSuit": "spade",
+        "judgeFailRankMin": 2,
+        "judgeFailRankMax": 9
+      }
+    },
+    {
+      "id": "benchmark_gaming",
+      "name": "榜单刷分",
+      "en": "Benchmark Gaming",
+      "category": "event",
+      "kind": "gamble",
+      "count": 1,
+      "suits": [
+        "spade",
+        "club",
+        "heart",
+        "diamond"
+      ],
+      "target": "self",
+      "effect": "进行判定：♠ = 争议爆发，你失去 1 点算力但摸 3 张牌；其他花色 = 你摸 2 张牌。",
+      "params": {
+        "failSuit": "spade",
+        "failDamage": 1,
+        "failDraw": 3,
+        "successDraw": 2
+      }
+    },
+    {
+      "id": "weapon_code_agent",
+      "name": "Code Agent",
+      "category": "equipment",
+      "slot": "weapon",
+      "kind": "weapon",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "射程 2。",
+      "params": {
+        "range": 2
+      }
+    },
+    {
+      "id": "weapon_reasoning_cluster",
+      "name": "推理集群",
+      "category": "equipment",
+      "slot": "weapon",
+      "kind": "weapon",
+      "count": 1,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "射程 3。",
+      "params": {
+        "range": 3
+      }
+    },
+    {
+      "id": "weapon_multimodal_base",
+      "name": "多模态基座",
+      "category": "equipment",
+      "slot": "weapon",
+      "kind": "weapon",
+      "count": 1,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "射程 4。",
+      "params": {
+        "range": 4
+      }
+    },
+    {
+      "id": "weapon_full_stack_cloud",
+      "name": "全栈云平台",
+      "category": "equipment",
+      "slot": "weapon",
+      "kind": "weapon",
+      "count": 1,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "射程 5。",
+      "params": {
+        "range": 5
+      }
+    },
+    {
+      "id": "weapon_on_device",
+      "name": "端侧小模型",
+      "category": "equipment",
+      "slot": "weapon",
+      "kind": "weapon",
+      "count": 1,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "射程 1。你的「蒸馏指控」每回合不限次数。",
+      "params": {
+        "range": 1,
+        "unlimitedAttacks": true
+      }
+    },
+    {
+      "id": "distance_long_context",
+      "name": "长上下文 1M",
+      "category": "equipment",
+      "slot": "distance_in",
+      "kind": "distance",
+      "count": 1,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "effect": "所有对手到你的距离 +1。",
+      "params": {
+        "incoming": 1
+      }
+    },
+    {
+      "id": "distance_proprietary_channel",
+      "name": "专有分发渠道",
+      "category": "equipment",
+      "slot": "distance_out",
+      "kind": "distance",
+      "count": 1,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "effect": "你到所有对手的距离 −1。",
+      "params": {
+        "outgoing": -1
+      }
+    },
+    {
+      "id": "task_chat",
+      "name": "Chat 产品",
+      "category": "equipment",
+      "slot": "task_chat",
+      "kind": "task",
+      "task": "chat",
+      "count": 2,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "effect": "【用户留存】你的手牌上限 +2。",
+      "params": {
+        "handLimitBonus": 2
+      }
+    },
+    {
+      "id": "task_code",
+      "name": "Code 产品",
+      "category": "equipment",
+      "slot": "task_code",
+      "kind": "task",
+      "task": "code",
+      "count": 2,
+      "suits": [
+        "club",
+        "spade",
+        "diamond",
+        "heart"
+      ],
+      "effect": "【生产力杠杆】出牌阶段一次：弃 1 张手牌，视为打出一张「蒸馏指控」（仍需满足射程，且计入每回合指控次数限制）。",
+      "params": {
+        "perTurn": 1,
+        "action": "discard_one_as_attack"
+      }
+    },
+    {
+      "id": "task_office",
+      "name": "办公套件",
+      "category": "equipment",
+      "slot": "task_office",
+      "kind": "task",
+      "task": "office",
+      "count": 2,
+      "suits": [
+        "heart",
+        "diamond",
+        "club",
+        "spade"
+      ],
+      "effect": "【文档协作】出牌阶段一次：弃 2 张手牌，回复 1 点算力。",
+      "params": {
+        "perTurn": 1,
+        "action": "discard_two_heal_one"
+      }
+    },
+    {
+      "id": "task_tts",
+      "name": "TTS 语音合成",
+      "category": "equipment",
+      "slot": "task_tts",
+      "kind": "task",
+      "task": "tts",
+      "count": 2,
+      "suits": [
+        "spade",
+        "club",
+        "heart",
+        "diamond"
+      ],
+      "effect": "【舆论广播】出牌阶段一次：指定一名玩家公开其一张随机手牌；若公开的是「蒸馏指控」，你获得该牌。",
+      "params": {
+        "perTurn": 1,
+        "action": "reveal_random_card_steal_attack"
+      }
+    },
+    {
+      "id": "task_stt",
+      "name": "STT 语音识别",
+      "category": "equipment",
+      "slot": "task_stt",
+      "kind": "task",
+      "task": "stt",
+      "count": 2,
+      "suits": [
+        "spade",
+        "club",
+        "heart",
+        "diamond"
+      ],
+      "effect": "【会议纪要】出牌阶段一次：查看牌堆顶 2 张牌，以任意顺序放回牌堆顶。",
+      "params": {
+        "perTurn": 1,
+        "action": "peek_top_two_reorder"
+      }
+    },
+    {
+      "id": "task_iti",
+      "name": "图生图 ITI",
+      "category": "equipment",
+      "slot": "task_iti",
+      "kind": "task",
+      "task": "iti",
+      "count": 2,
+      "suits": [
+        "diamond",
+        "heart",
+        "club",
+        "spade"
+      ],
+      "effect": "【风格迁移】出牌阶段一次：弃 1 张手牌，从弃牌堆顶获得 1 张牌。",
+      "params": {
+        "perTurn": 1,
+        "action": "discard_one_draw_from_discard_pile"
+      }
+    }
+  ]
+}

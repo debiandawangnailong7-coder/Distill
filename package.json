@@ -1,0 +1,14 @@
+{
+  "name": "distill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DISTILL! — 戏仿 BANG! 的大模型身份卡牌游戏",
+  "scripts": {
+    "build:deck": "node scripts/build-deck.mjs",
+    "test": "node --test tests/*.test.js",
+    "coverage": "node tests/coverage.mjs 300",
+    "serve": "node scripts/serve.mjs",
+    "build:dist": "node scripts/build-dist.mjs"
+  }
+}

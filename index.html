@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DISTILL! — 模型权重身份牌局</title>
+<link rel="stylesheet" href="./src/ui/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header id="topbar">
+    <div class="brand">
+      <span class="logo">DISTILL!</span>
+      <span class="sub">戏仿 BANG! 的大模型身份牌局</span>
+    </div>
+    <div id="statusline">
+      <span id="turnInfo"></span>
+      <span id="pileInfo"></span>
+      <button id="speedBtn">快进</button>
+    </div>
+  </header>
+
+  <main id="tableWrap">
+    <div id="table">
+      <div id="seats"></div>
+      <div id="center">
+        <div id="stageMsg"></div>
+        <div id="piles">
+          <div class="pile" id="drawPile"><span class="pileCount">0</span><span class="pileLabel">牌堆</span></div>
+          <div class="pile" id="discardPile"><span class="pileCount">0</span><span class="pileLabel">弃牌堆</span></div>
+        </div>
+      </div>
+    </div>
+    <aside id="logPanel">
+      <h3>战报</h3>
+      <div id="log"></div>
+    </aside>
+  </main>
+
+  <section id="youPanel">
+    <div id="youInfo"></div>
+    <div id="hand"></div>
+  </section>
+
+  <section id="actionBar">
+    <div id="actionPrompt"></div>
+    <div id="actions"></div>
+  </section>
+
+  <div id="modal" class="hidden">
+    <div id="modalBox">
+      <div id="modalPrompt"></div>
+      <div id="modalOptions"></div>
+      <div id="modalFooter">
+        <span id="modalHint"></span>
+        <button id="modalConfirm" class="hidden">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden">
+    <div id="overlayBox">
+      <h1 id="overlayTitle">DISTILL!</h1>
+      <div id="overlayBody"></div>
+      <button id="overlayBtn">开始对局</button>
+    </div>
+  </div>
+
+</div>
+<script type="module" src="./src/ui/main.js"></script>
+</body>
+</html>
