@@ -113,7 +113,7 @@ test('启发式 AI 的三方胜率都落在可玩区间', async () => {
     wins[state.winner.winner]++;
   }
   const rate = (k) => wins[k] / N;
-  // 基线（300 局实测）：实验室阵营 45% / 蒸馏者 34% / 独狼 21%。
+  // 基线（600 局实测，含豆包 Seed）：实验室阵营 41% / 蒸馏者 43% / 独狼 16%。
   // 区间放宽以吸收小样本波动，但仍能抓住早期版本的失衡（蒸馏者 71% / 独狼 1.3%）。
   assert.ok(rate('frontier_lab') > 0.25 && rate('frontier_lab') < 0.65, `实验室阵营 ${(rate('frontier_lab') * 100).toFixed(1)}%`);
   assert.ok(rate('distiller') > 0.18 && rate('distiller') < 0.55, `蒸馏者 ${(rate('distiller') * 100).toFixed(1)}%`);

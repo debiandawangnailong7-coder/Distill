@@ -23,7 +23,13 @@ export class Game {
     this.decide = decide;
     this.onEvent = onEvent ?? (() => {});
     this.typesById = new Map(cardTypes.cardTypes.map((t) => [t.id, t]));
-    this.skillNameByMechanic = new Map(characters.characters.map((c) => [c.mechanic, c.skill.name]));
+    this.skillNameByMechanic = new Map();
+    for (const c of characters.characters) {
+      for (const s of c.skills ?? [c.skill]) {
+        const mechanic = s.mechanic ?? c.mechanic;
+        if (mechanic) this.skillNameByMechanic.set(mechanic, s.name);
+      }
+    }
     this.roleDefs = roles;
     this.characterDefs = characters.characters;
     this.playerCount = playerCount;
@@ -361,6 +367,7 @@ export class Game {
       if (stolen) {
         target.hand.push(stolen);
         this.log(`${target.name}「音色风波」从 ${source.name} 手中抽走 1 张牌`);
+        await this.afterHandChange(source);
       }
     }
 
@@ -414,6 +421,7 @@ export class Game {
         this.emit({ type: 'rescue', playerIndex: p.index, targetIndex: victim.index });
         this.noteRelation(p.index, victim.index, -2);
         this.log(`${p.name} 打出「融资到账」救援 ${victim.name} → 算力 ${victim.compute}`);
+        await this.afterHandChange(p);
         saved = true;
         break;
       }
@@ -537,6 +545,7 @@ export class Game {
     this.toDiscard(card);
     this.log(`${player.name} 打出 ${this.cardLabel(card)}`);
     this.emit({ type: 'play', playerIndex: player.index, card, targetIndex: source?.index ?? null });
+    await this.afterHandChange(player);
     return true;
   }
 
@@ -673,7 +682,13 @@ export class Game {
     if (R.taskUsesLeft(player, 'code') > 0 && attacksLeft > 0 && player.hand.length > 0) {
       for (const tgt of targets) {
         if (!R.canTarget(s, player, tgt)) continue;
-        actions.push({ kind: 'task', task: 'code', targetIndex: tgt.index, label: `【生产力杠杆】弃 1 张手牌当作指控 → ${tgt.name}` });
+        actions.push({
+          kind: 'task',
+          task: 'code',
+          targetIndex: tgt.index,
+          label: `【生产力杠杆】弃 1 张手牌当作指控 → ${tgt.name}`,
+          labelBase: '【生产力杠杆】弃 1 张手牌当作指控',
+        });
       }
     }
     if (R.taskUsesLeft(player, 'office') > 0 && player.compute < R.maxCompute(player) && player.hand.length >= 2) {
@@ -682,14 +697,26 @@ export class Game {
     if (R.taskUsesLeft(player, 'tts') > 0 && targets.some((t) => t.hand.length > 0)) {
       for (const tgt of targets) {
         if (!tgt.hand.length) continue;
-        actions.push({ kind: 'task', task: 'tts', targetIndex: tgt.index, label: `【舆论广播】公开 ${tgt.name} 的一张手牌` });
+        actions.push({
+          kind: 'task',
+          task: 'tts',
+          targetIndex: tgt.index,
+          label: `【舆论广播】公开 ${tgt.name} 的一张手牌`,
+          labelBase: '【舆论广播】公开一名玩家的手牌',
+        });
       }
     }
     if (R.taskUsesLeft(player, 'stt') > 0 && s.drawPile.length + s.discardPile.length >= 2) {
       actions.push({ kind: 'task', task: 'stt', label: '【会议纪要】查看牌堆顶 2 张并排序' });
     }
     if (R.taskUsesLeft(player, 'iti') > 0 && player.hand.length > 0 && s.discardPile.length > 0) {
-      actions.push({ kind: 'task', task: 'iti', label: '【风格迁移】弃 1 张手牌换取弃牌堆顶 1 张' });
+      // 把弃牌堆顶写进文案：否则玩家无法评估这次交换值不值。
+      const top = s.discardPile[s.discardPile.length - 1];
+      actions.push({
+        kind: 'task',
+        task: 'iti',
+        label: `【风格迁移】弃 1 张手牌换取弃牌堆顶的 ${this.cardLabel(top)}`,
+      });
     }
     if (R.hasMechanic(player, 'discard_two_heal_one') && player.compute < R.maxCompute(player) && player.hand.length >= 2) {
       actions.push({ kind: 'character_ability', ability: 'discard_two_heal_one', label: `「${player.character.skill.name}」弃 2 张手牌回复 1 点算力` });
@@ -708,7 +735,7 @@ export class Game {
 
     while (!s.gameOver) {
       const player = s.players[s.currentPlayerIndex];
-      if (player.alive) await this.runTurn(player);
+      if (player.alive) await this.runTurnWithFollowUps(player);
       if (s.gameOver) break;
       do {
         s.currentPlayerIndex = (s.currentPlayerIndex + 1) % s.players.length;
@@ -718,20 +745,54 @@ export class Game {
     return s;
   }
 
-  async runTurn(player) {
+  /**
+   * 豆包 Seed「国民应用」：每名其他角色回合结束后，立刻进行一个跳过判定阶段的额外回合。
+   * 额外回合不触发自己的后续回合，避免递归。currentPlayerIndex 在额外回合期间指向豆包，
+   * 让 UI 的高亮和状态栏也能正确显示；结束后再恢复到原座位，主循环继续按座位推进。
+   */
+  async runTurnWithFollowUps(player) {
+    const s = this.state;
+    await this.runTurn(player);
+
+    const extra = s.players.find(
+      (p) => p.alive && R.hasMechanic(p, 'extra_turn_after_each_other_turn')
+    );
+    if (!extra || extra.index === player.index || s.gameOver) return;
+
+    const normalIndex = s.currentPlayerIndex;
+    this.noteSkill(extra, 'extra_turn_after_each_other_turn');
+    this.log(`${extra.name}「国民应用」触发额外回合（跳过判定）`);
+    s.currentPlayerIndex = extra.index;
+    await this.runTurn(extra, { skipJudgment: true, extra: true });
+    s.currentPlayerIndex = normalIndex;
+  }
+
+  async runTurn(player, { skipJudgment = false, extra = false } = {}) {
     const s = this.state;
     s.turnNumber++;
     player.attacksThisTurn = 0;
     player.taskUses = {};
-    this.emit({ type: 'turnStart', playerIndex: player.index, turnNumber: s.turnNumber });
-    this.log(`—— 第 ${s.turnNumber} 回合：${player.name}（${player.character.name}）——`);
+    this.emit({ type: 'turnStart', playerIndex: player.index, turnNumber: s.turnNumber, extra });
+    this.log(
+      `—— 第 ${s.turnNumber} 回合${extra ? '（额外）' : ''}：${player.name}（${player.character.name}）——`
+    );
 
-    const skipped = await this.judgmentPhase(player);
+    const skipped = skipJudgment ? false : await this.judgmentPhase(player);
     if (!skipped && player.alive && !s.gameOver) {
       await this.drawPhase(player);
       if (player.alive && !s.gameOver) await this.playPhase(player);
     }
     if (player.alive && !s.gameOver) await this.discardPhase(player);
+
+    // 「3 = 1+1」：每个自己的回合结束时损失 1 点算力（含额外回合）。
+    // 用 dealDamage 而不是直接改 compute，让濒死、救援和受伤触发都走正常流程。
+    if (player.alive && !s.gameOver && R.hasMechanic(player, 'lose_one_compute_at_turn_end')) {
+      this.noteSkill(player, 'lose_one_compute_at_turn_end');
+      await this.dealDamage(null, player, 1, '3 = 1+1');
+    }
+
+    this.checkGameOver();
+    this.emit({ type: 'turnEnd', playerIndex: player.index, turnNumber: s.turnNumber, extra });
   }
 
   async judgmentPhase(player) {
@@ -921,6 +982,7 @@ export class Game {
         this.log(`${player.name}【舆论广播】公开了 ${target.name} 的 ${this.cardLabel(card)}${isAttack ? '，并据为己有' : '，退回原主'}`);
         if (isAttack) {
           player.hand.push(card);
+          await this.afterHandChange(target);
         } else {
           target.hand.push(card);
         }
@@ -1114,6 +1176,7 @@ export class Game {
           if (played) {
             this.toDiscard(played);
             this.log(`${p.name} 打出 ${this.cardLabel(played)} 回应监管问询`);
+            await this.afterHandChange(p);
           } else {
             await this.dealDamage(player, p, t.params.damage, '监管问询');
           }
@@ -1150,6 +1213,7 @@ export class Game {
           if (stolen) {
             player.hand.push(stolen);
             this.log(`${player.name} 从 ${target.name} 手中抽走 1 张牌`);
+            await this.afterHandChange(target);
           }
         } else {
           const slot = id.slice('slot:'.length);
@@ -1183,6 +1247,7 @@ export class Game {
           const gone = this.stealRandomFromHand(target);
           this.toDiscard(gone);
           this.log(`${target.name} 被迫弃掉 1 张手牌`);
+          await this.afterHandChange(target);
         } else {
           const slot = id.slice('slot:'.length);
           const eq = target.equipment[slot];
@@ -1247,6 +1312,7 @@ export class Game {
       if (!played) break;
       this.toDiscard(played);
       this.log(`${current.name} 在对决中打出 ${this.cardLabel(played)}`);
+      await this.afterHandChange(current);
       current = other;
     }
     const loser = current;

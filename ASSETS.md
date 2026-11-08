@@ -10,16 +10,17 @@ Q 版（chibi）素材。角色按社区对真实大模型的常见拟人来设�
 ```
 assets/
   generic/            通用素材库 —— 可复用，新增卡片零成本
-    char_default.png        默认角色头像（中性小机器人）
+    char_default.svg        默认角色头像（黄色通用模型占位）
     role_<roleId>.png       4 张身份徽记（实验室/被许可方/蒸馏者/独狼）
     kind_<class>.png        4 张牌型徽记（攻击/防御/装备/行动）
     card_back.png  title.png
-  characters/<id>.png  专属角色立绘，id 取自 data/characters.json
-  cards/<id>.png       专属牌型图标，id 取自 data/cardTypes.json
+  characters/<id>.svg  专属角色立绘（优先），id 取自 data/characters.json
+  characters/<id>.png  可选的位图兜底；首批旧 AI PNG 已移除，统一走 SVG/通用占位
+  cards/<id>.svg|.png  专属牌型图标，id 取自 data/cardTypes.json
   manifest.json        素材 → 数据 id 映射与状态，由脚本生成
 ```
 
-**通用库是兜底，不是占位。** 没有专属立绘的角色用 `char_default.png`，没有专属图标的牌用所属大类的 `kind_*.png`。
+**通用库是兜底，不是占位。** 没有专属立绘的角色用 `char_default.svg`，没有专属图标的牌用所属大类的 `kind_*.png`（同样优先查找同名 `.svg`）。
 所以新增一张牌、新增一个模型角色，**不需要补任何图**，游戏立刻能正常显示；想要更好的观感再单独出图。
 
 身份徽记和角色立绘是两条独立的轴：座位主体显示角色，开局抽身份与结算揭示显示身份徽记。
@@ -27,11 +28,23 @@ assets/
 重跑：
 
 ```
-npm run assets:manifest
+npm run build:art        # 由 scripts/build-art.mjs 生成矢量角色/占位图
+npm run assets:manifest  # 扫描 assets/，重写清单
 ```
 
-脚本读 `data/` 三张表，扫描 `assets/` 实际文件，重写清单。放进一张 `assets/characters/<id>.png`，
-对应条目就从 `generic` 变成 `ready`；删掉就自动退回兜底。
+清单优先使用同名 `.svg`，没有 SVG 时退回 `.png`。所以可以把旧 PNG 留在目录里做对照，
+放进 `assets/characters/<id>.svg` 后对应条目自动变成 `ready`；删掉就退回通用兜底。
+
+**首批矢量形象（2026-11）**：DeepSeek-R1、Claude 3.5 Sonnet、GPT-4o、Kimi K2 走人形 Q 版；
+豆包 Seed 是白色豆包团子 + 红围巾；通用占位是黄色圆团 + `?`。
+豆包明确保留官方 App 头像的围巾语言，允许与其他角色不是同一画风；其余人形角色共享同一套
+深色外描边 + 白色内描边 + 平涂的贴纸语法。角色底模带轻微头部倾斜、差异化眼型/嘴型、
+手部姿势和少量四角星闪光，避免正面站桩的证件照感；后续角色沿用这套底模。
+
+社区设定来源只作为视觉锚点，不直接复刻原图：DeepSeek 的「溟月 / 大肥鱼」来自上善无形与
+ZipZipPipe；Claude、GPT、Kimi、Seed 的主流二创多来自 ZipZipPipe 的 AI 娘系列；索引与三视图可参考
+[AI 萌化百科](https://selinlee.github.io/ai-moe-atlas/zh/chibi/)。这些社区设定大多是非商用/署名条件，
+本仓库的 SVG 是原创矢量诠释，保留 `ASSETS.md` 的戏仿与来源声明。
 
 ---
 
@@ -102,6 +115,7 @@ Sticker-like crisp silhouette, readable as a pure silhouette when shrunk.
 | GLM-4 | 学术溯源 | 智谱、论文引用链 | 戴学士帽的小研究员，抱着一摞引文卡片 |
 | Phi-4 | 端侧自足 | 小模型跑在手机里 | 羽毛小精灵，盘腿坐在手机屏幕上 |
 | Gemma 3 | 回收再利用 | Google 小花/宝石标 | 花形小人，从回收箱里翻牌 |
+| 豆包 Seed | 国民应用 / 3 = 1+1 | 官方豆包 App 头像的白色圆团 + 红围巾；ZipZipPipe 的 Seed 娘为紫蓝双马尾 | 白色豆包团子 + 红围巾 + SEED 挂件；用户明确保留围巾形象，允许与其他角色画风不同 |
 
 牌型徽记走同一套逻辑：蒸馏指控=指向你的手套+法槌、合规声明=举盾的公证小人、装备=齿轮技工+服务器机架、
 行动=弹跳骰子+闪电。具体到某张牌想要专属图时，再按事件梗单独出（AGI 宣言=引线冒火的炸弹、
@@ -111,9 +125,11 @@ HuggingFace 上架=拆开的笑脸包裹、Benchmark 对决=交叉的量尺、AP
 
 ## 5. 接入 UI 时（已完成）
 
-- `src/ui/main.js` 启动时读取 `assets/manifest.json` 建索引：`file` 非空用它，为空用 `fallback`。
-  座位头像（圆形 88% 内缩补偿）、身份徽记、卡面角标、装备 chip、弃牌堆顶徽记、开场标题图与结算表均已接图；
-  清单缺失或加载失败时自动退回纯文字版 UI。
+- `src/ui/assets.js` 启动时读取 `assets/manifest.json` 建索引：`file` 非空用它，为空用 `fallback`；
+  `src/ui/render.js` 的 keyed DOM 渲染座位头像（圆形裁切）、身份徽记、卡面角标、装备 chip、弃牌堆顶徽记、
+  开场标题图与结算表。清单缺失或加载失败时自动退回纯文字/占位头像。
 - CSS 自定义属性里的相对 URL 解析基准不可靠，manifest 路径统一转成 `new URL(path, document.baseURI)`。
 - `scripts/build-dist.mjs` 已把 `assets/` 整目录拷进 `dist/`。
 - `scripts/serve.mjs` 的 MIME 表已支持 `.svg`/`.png`，本地预览无需改动。
+- 静态 UI 预览：`npm run serve` 后打开 `/src/ui/preview.html?mode=targeting|actions|modal|gameover|intro`，
+  不需要启动引擎，适合截图与视觉回归。

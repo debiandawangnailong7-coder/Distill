@@ -11,65 +11,100 @@
 
   <header id="topbar">
     <div class="brand">
-      <span class="logo">DISTILL!</span>
-      <span class="sub">戏仿 BANG! 的大模型身份牌局</span>
+      <span class="wordmark">DISTILL!</span>
+      <span class="sub">一场关于模型权重的身份牌局</span>
     </div>
-    <div id="statusline">
-      <span id="turnInfo"></span>
-      <span id="pileInfo"></span>
-      <button id="speedBtn">快进</button>
+    <div class="topStatus">
+      <span id="turnInfo" class="turnInfo">准备中</span>
+      <span id="phaseInfo" class="phaseInfo"></span>
+      <button id="logBtn" class="iconBtn" title="案件记录" aria-label="打开案件记录">记录</button>
+      <button id="settingsBtn" class="iconBtn" title="设置" aria-label="打开设置">⚙</button>
+      <button id="speedBtn" class="iconBtn" title="切换快进" aria-label="切换快进">快进</button>
     </div>
   </header>
 
   <main id="tableWrap">
     <div id="table">
+      <div id="tableGlow"></div>
       <div id="seats"></div>
+      <div id="rangeLayer"></div>
       <div id="fxLayer"></div>
       <div id="center">
-        <div id="stageMsg"></div>
-        <div id="playedStack"></div>
+        <div id="turnRibbon"></div>
+        <div id="stage"></div>
         <div id="piles">
-          <div class="pile" id="drawPile"><span class="pileCount">0</span><span class="pileLabel">牌堆</span></div>
-          <div class="pile" id="discardPile"><span class="pileCount">0</span><span class="pileLabel">弃牌堆</span></div>
+          <div class="pile" id="drawPile" title="牌堆"><span class="pileCount">0</span><span class="pileLabel">牌堆</span></div>
+          <div class="pile" id="discardPile" title="弃牌堆"><span class="pileCount">0</span><span class="pileLabel">弃牌</span></div>
         </div>
+        <div id="hintLine" aria-live="polite"></div>
       </div>
+      <div id="dragLayer"></div>
     </div>
-    <aside id="logPanel">
-      <h3>战报</h3>
+
+    <aside id="logDrawer" class="drawer hidden" aria-label="案件记录">
+      <header>
+        <div>
+          <h3>案件记录</h3>
+          <p class="drawerSub">完整的回合流水，只在你需要时展开。</p>
+        </div>
+        <button id="logClose" class="iconBtn" aria-label="关闭案件记录">×</button>
+      </header>
       <div id="log"></div>
     </aside>
   </main>
 
   <section id="youPanel">
     <div id="youInfo"></div>
-    <div id="hand"></div>
+    <div id="handWrap">
+      <div id="hand"></div>
+    </div>
   </section>
 
-  <section id="actionBar">
-    <div id="actionPrompt"></div>
+  <section id="contextBar">
+    <div id="prompt" aria-live="polite"></div>
     <div id="actions"></div>
   </section>
 
-  <div id="modal" class="hidden">
+  <div id="responseTray" class="hidden" aria-live="polite"></div>
+
+  <div id="modal" class="hidden" role="dialog" aria-modal="true">
     <div id="modalBox">
+      <div id="modalKicker"></div>
       <div id="modalPrompt"></div>
       <div id="modalOptions"></div>
       <div id="modalFooter">
         <span id="modalHint"></span>
-        <button id="modalConfirm" class="hidden">确认</button>
+        <button id="modalConfirm">确认</button>
       </div>
     </div>
   </div>
 
-  <div id="overlay" class="hidden">
+  <div id="overlay" role="dialog" aria-modal="true">
     <div id="overlayBox">
-      <h1 id="overlayTitle">DISTILL!</h1>
+      <div id="overlayKicker">CASE FILE · 模型权重身份牌局</div>
+      <div id="overlayTitle">DISTILL!</div>
       <div id="overlayBody"></div>
       <button id="overlayBtn">开始对局</button>
     </div>
   </div>
 
+  <div id="settingsPanel" class="hidden" role="dialog" aria-modal="false">
+    <header><strong>桌面设置</strong><button id="settingsClose" class="iconBtn" aria-label="关闭设置">×</button></header>
+    <div class="settingRow">
+      <span>提示强度</span>
+      <div class="segmented" id="modeControl">
+        <button data-mode="beginner">新手</button>
+        <button data-mode="standard">标准</button>
+        <button data-mode="expert">专家</button>
+      </div>
+    </div>
+    <label class="settingRow"><span>减少动效</span><input id="reduceMotion" type="checkbox"></label>
+    <label class="settingRow"><span>快进</span><input id="fastMode" type="checkbox"></label>
+    <p class="settingNote">新手会解释第一次遇到的机制；专家只保留数字与键盘操作。</p>
+  </div>
+
+  <div id="toastLayer" aria-live="polite"></div>
 </div>
-<script type="module" src="./src/ui/main.js"></script>
+<script type="module" src="./src/ui/app.js"></script>
 </body>
 </html>

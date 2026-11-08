@@ -6,7 +6,8 @@ export const ROLE = {
 };
 
 export function hasMechanic(player, mechanic) {
-  return player.character?.mechanic === mechanic;
+  const character = player.character;
+  return character?.mechanic === mechanic || character?.mechanics?.includes(mechanic) === true;
 }
 
 export function alivePlayers(state) {

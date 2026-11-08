@@ -119,6 +119,81 @@ test('Sky「音色风波」：受伤时从伤害来源手中抽 1 张', async ()
   assert.equal(victim.hand.length, 1);
 });
 
+test('豆包 Seed「国民应用」：其他角色回合结束后获得无判定额外回合，并触发「3 = 1+1」', async () => {
+  const starts = [];
+  const g = fixture({
+    onEvent: (e) => {
+      if (e.type === 'turnStart') starts.push(e);
+    },
+  });
+  const [first, doubao] = g.state.players;
+  setChar(first, 'phi_4');
+  setChar(doubao, 'doubao_seed');
+  doubao.compute = 6;
+  // 额外回合跳过判定阶段，AGI 宣言不应引爆
+  doubao.dynamite = card('agi_claim');
+  g.state.inPlay.dynamite = true;
+  g.state.currentPlayerIndex = first.index;
+
+  await g.runTurnWithFollowUps(first);
+
+  assert.equal(starts.length, 2, '普通回合 + 豆包额外回合');
+  assert.equal(starts[0].playerIndex, first.index);
+  assert.equal(starts[0].extra, false);
+  assert.equal(starts[1].playerIndex, doubao.index);
+  assert.equal(starts[1].extra, true);
+  assert.equal(doubao.compute, 5, '额外回合结束损失 1 点算力');
+  assert.ok(doubao.dynamite, '额外回合没有判定阶段，AGI 宣言保留');
+});
+
+test('豆包 Seed 自己的回合不额外触发「国民应用」，但会触发「3 = 1+1」', async () => {
+  const starts = [];
+  const g = fixture({
+    onEvent: (e) => {
+      if (e.type === 'turnStart') starts.push(e);
+    },
+  });
+  const doubao = g.state.players[0];
+  setChar(doubao, 'doubao_seed');
+  doubao.compute = 6;
+  g.state.currentPlayerIndex = doubao.index;
+
+  await g.runTurnWithFollowUps(doubao);
+
+  assert.equal(starts.length, 1, '自己的回合不应再触发额外回合');
+  assert.equal(starts[0].extra, false);
+  assert.equal(doubao.compute, 5);
+});
+
+test('豆包 Seed 出局后不再触发「国民应用」', async () => {
+  const starts = [];
+  const g = fixture({
+    onEvent: (e) => {
+      if (e.type === 'turnStart') starts.push(e);
+    },
+  });
+  const [first, doubao] = g.state.players;
+  setChar(first, 'phi_4');
+  setChar(doubao, 'doubao_seed');
+  doubao.alive = false;
+  g.state.currentPlayerIndex = first.index;
+
+  await g.runTurnWithFollowUps(first);
+  assert.equal(starts.length, 1);
+});
+
+test('豆包 Seed「3 = 1+1」在回合结束时可能直接导致出局', async () => {
+  const g = fixture();
+  const doubao = g.state.players[0];
+  setChar(doubao, 'doubao_seed');
+  doubao.compute = 1;
+  for (const p of g.state.players) p.hand = [];
+  g.state.drawPile = [card('attack'), card('attack')];
+
+  await g.runTurn(doubao);
+  assert.equal(doubao.alive, false);
+});
+
 test('Grok-2「无过滤」需要 2 张声明，普通角色只需 1 张', async () => {
   const alwaysDefend = ({ request }) => {
     if (request.type !== 'select') return { kind: 'end_turn' };
@@ -208,6 +283,17 @@ test('Qwen「全尺寸开源」：手牌归零立即补 1 张', async () => {
   g.state.drawPile = [card('defense')];
   await g.afterHandChange(p);
   assert.equal(p.hand.length, 0, '非 Qwen 不触发');
+});
+
+test('Qwen「全尺寸开源」：被 TTS 夺走最后一张指控后立即补牌', async () => {
+  const { g, p, others } = setup('phi_4', { hand: [] });
+  const qwen = others[0];
+  setChar(qwen, 'qwen2_5_72b');
+  qwen.hand = [card('attack')];
+  p.equipment.task_tts = card('task_tts');
+  g.state.drawPile = [card('defense')];
+  await g.activateTask(p, 'tts', qwen.index);
+  assert.equal(qwen.hand.length, 1, 'Qwen 手牌归零后应立即摸 1 张');
 });
 
 test('Sora「数据回收」：玩家出局时接管其手牌与装备', async () => {

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DISTILL! · UI preview</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand"><span class="wordmark">DISTILL!</span><span class="sub">一场关于模型权重的身份牌局</span></div>
+    <div class="topStatus">
+      <span id="turnInfo" class="turnInfo"></span>
+      <span id="phaseInfo" class="phaseInfo"></span>
+      <button id="logBtn" class="iconBtn">记录</button>
+      <button id="settingsBtn" class="iconBtn">⚙</button>
+      <button id="speedBtn" class="iconBtn">快进</button>
+    </div>
+  </header>
+  <main id="tableWrap">
+    <div id="table">
+      <div id="tableGlow"></div>
+      <div id="seats"></div>
+      <div id="rangeLayer"></div>
+      <div id="fxLayer"></div>
+      <div id="center">
+        <div id="turnRibbon"></div>
+        <div id="stage"></div>
+        <div id="piles">
+          <div class="pile" id="drawPile"><span class="pileCount">0</span><span class="pileLabel">牌堆</span></div>
+          <div class="pile" id="discardPile"><span class="pileCount">0</span><span class="pileLabel">弃牌</span></div>
+        </div>
+        <div id="hintLine"></div>
+      </div>
+      <div id="dragLayer"></div>
+    </div>
+    <aside id="logDrawer" class="drawer hidden">
+      <header><div><h3>案件记录</h3><p class="drawerSub">完整的回合流水。</p></div><button id="logClose" class="iconBtn">×</button></header>
+      <div id="log"></div>
+    </aside>
+  </main>
+  <section id="youPanel">
+    <div id="youInfo"></div>
+    <div id="handWrap"><div id="hand"></div></div>
+  </section>
+  <section id="contextBar">
+    <div id="prompt"></div>
+    <div id="actions"></div>
+  </section>
+  <div id="responseTray" class="hidden"></div>
+  <div id="modal" class="hidden" role="dialog" aria-modal="true">
+    <div id="modalBox"><div id="modalKicker"></div><div id="modalPrompt"></div><div id="modalOptions"></div><div id="modalFooter"><span id="modalHint"></span><button id="modalConfirm">确认</button></div></div>
+  </div>
+  <div id="overlay" class="hidden"><div id="overlayBox"><div id="overlayKicker"></div><div id="overlayTitle"></div><div id="overlayBody"></div><button id="overlayBtn">开始对局</button></div></div>
+  <div id="settingsPanel" class="hidden"><header><strong>桌面设置</strong><button id="settingsClose" class="iconBtn">×</button></header><div class="settingRow"><span>提示强度</span><div class="segmented" id="modeControl"><button data-mode="beginner">新手</button><button data-mode="standard" class="on">标准</button><button data-mode="expert">专家</button></div></div><label class="settingRow"><span>减少动效</span><input id="reduceMotion" type="checkbox"></label><label class="settingRow"><span>快进</span><input id="fastMode" type="checkbox"></label></div>
+  <div id="toastLayer"></div>
+</div>
+<script type="module" src="./preview.js"></script>
+</body>
+</html>

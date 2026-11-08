@@ -127,6 +127,29 @@
       "skill": { "id": "reuse", "name": "回收再利用" },
       "effect": "当你需要判定时，可以用弃牌堆顶的牌代替翻开的判定牌",
       "mechanic": "judge_from_discard_pile"
+    },
+    {
+      "id": "doubao_seed",
+      "name": "豆包 Seed",
+      "compute": 6,
+      "skill": { "id": "national_app", "name": "国民应用" },
+      "skills": [
+        {
+          "id": "national_app",
+          "name": "国民应用",
+          "mechanic": "extra_turn_after_each_other_turn",
+          "effect": "锁定技，每名其他角色回合结束后，你进行一个没有判定阶段的回合"
+        },
+        {
+          "id": "three_equals_one_plus_one",
+          "name": "3 = 1+1",
+          "mechanic": "lose_one_compute_at_turn_end",
+          "effect": "锁定技，你的每个回合结束时，损失 1 点算力"
+        }
+      ],
+      "effect": "锁定技：每名其他角色回合结束后，你进行一个没有判定阶段的回合；你的每个回合结束时，损失 1 点算力",
+      "mechanic": "extra_turn_after_each_other_turn",
+      "mechanics": ["extra_turn_after_each_other_turn", "lose_one_compute_at_turn_end"]
     }
   ]
 }

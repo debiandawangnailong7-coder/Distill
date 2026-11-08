@@ -17,3 +17,6 @@ Thumbs.db
 # 本地配置与密钥
 .env
 .env.local
+
+# Qoder 站点绑定文件，由发布流程按当前账号与目录生成
+*.qoder.site

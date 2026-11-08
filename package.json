@@ -10,6 +10,7 @@
     "coverage": "node tests/coverage.mjs 300",
     "serve": "node scripts/serve.mjs",
     "build:dist": "node scripts/build-dist.mjs",
-    "assets:manifest": "node scripts/make-asset-manifest.mjs"
+    "assets:manifest": "node scripts/make-asset-manifest.mjs",
+    "build:art": "node scripts/build-art.mjs"
   }
 }
