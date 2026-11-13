@@ -46,13 +46,7 @@ for (let seed = 1; seed <= N; seed++) {
 
 const allKinds = [...new Set(data.deck.cards.map((c) => c.kind))].sort();
 const allMechanics = data.characters.characters
-  .flatMap((c) => {
-    const mechanics = c.mechanics ?? [c.mechanic];
-    return mechanics.map((mechanic) => ({
-      mechanic,
-      label: `${c.name} / ${c.skills?.find((s) => s.mechanic === mechanic)?.name ?? c.skill.name}`,
-    }));
-  })
+  .flatMap((c) => (c.skills ?? []).filter((s) => s.mechanic).map((s) => ({ mechanic: s.mechanic, label: `${c.name} / ${s.name}` })))
   .sort((a, b) => a.label.localeCompare(b.label));
 
 console.log(`\n=== ${N} 局覆盖统计（随机决策）===\n`);

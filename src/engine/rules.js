@@ -5,9 +5,19 @@ export const ROLE = {
   LONE_WOLF: 'lone_wolf',
 };
 
+/** 装备槽位结构：武器 + 双向距离 + 辅助，以及六个主动产品槽。 */
+export const SLOT_ORDER = ['weapon', 'distance_in', 'distance_out', 'support'];
+export const TASK_SLOTS = ['task_chat', 'task_code', 'task_office', 'task_tts', 'task_stt', 'task_iti'];
+export const EQUIPMENT_SLOTS = SLOT_ORDER.concat(TASK_SLOTS);
+
 export function hasMechanic(player, mechanic) {
-  const character = player.character;
-  return character?.mechanic === mechanic || character?.mechanics?.includes(mechanic) === true;
+  const skills = player.character?.skills ?? [];
+  return skills.some((s) => s.mechanic === mechanic);
+}
+
+/** 主技能 = skills[] 的第一项。UI 与提示文案统一从这里取，避免再读冗余的顶层字段。 */
+export function primarySkill(character) {
+  return character?.skills?.[0] ?? null;
 }
 
 export function alivePlayers(state) {

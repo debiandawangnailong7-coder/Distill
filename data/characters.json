@@ -1,155 +1,142 @@
 {
+  "_comment": "角色设计面。技能以 skills[] 为唯一来源：首个技能为「主技能」，mechanic 字段是引擎机制 id，与 src/engine 的实现一一对应。",
   "characters": [
     {
       "id": "gpt_4o",
       "name": "GPT-4o",
       "compute": 4,
-      "skill": { "id": "omni_modal", "name": "全模态" },
-      "effect": "你的任意手牌都可以当作「蒸馏指控」使用",
-      "mechanic": "any_card_as_attack"
+      "skills": [
+        { "name": "全模态", "mechanic": "any_card_as_attack", "effect": "你的任意手牌都可以当作「蒸馏指控」使用" }
+      ]
     },
     {
       "id": "o3",
       "name": "o3",
       "compute": 3,
-      "skill": { "id": "unbounded_reasoning", "name": "无上限推理" },
-      "effect": "你每回合可以使用任意数量的「蒸馏指控」",
-      "mechanic": "unlimited_attacks_per_turn"
+      "skills": [
+        { "name": "无上限推理", "mechanic": "unlimited_attacks_per_turn", "effect": "你每回合可以使用任意数量的「蒸馏指控」" }
+      ]
     },
     {
       "id": "gpt_4_5",
       "name": "GPT-4.5",
       "compute": 3,
-      "skill": { "id": "cost_spillover", "name": "成本外溢" },
-      "effect": "每当你受到伤害，所有其他玩家各弃 1 张牌",
-      "mechanic": "on_damaged_all_others_discard"
+      "skills": [
+        { "name": "成本外溢", "mechanic": "on_damaged_all_others_discard", "effect": "每当你受到伤害，所有其他玩家各弃 1 张牌" }
+      ]
     },
     {
       "id": "sky_voice",
       "name": "ChatGPT 语音模式 (Sky)",
       "compute": 3,
-      "skill": { "id": "voice_controversy", "name": "音色风波" },
-      "effect": "每当你受到伤害，从伤害来源手中随机抽 1 张牌",
-      "mechanic": "on_damaged_steal_from_source"
+      "skills": [
+        { "name": "音色风波", "mechanic": "on_damaged_steal_from_source", "effect": "每当你受到伤害，从伤害来源手中随机抽 1 张牌" }
+      ]
     },
     {
       "id": "sora",
       "name": "Sora",
       "compute": 3,
-      "skill": { "id": "data_recycling", "name": "数据回收" },
-      "effect": "每当有玩家出局，你获得其全部手牌与装备",
-      "mechanic": "on_eliminated_loot"
+      "skills": [
+        { "name": "数据回收", "mechanic": "on_eliminated_loot", "effect": "每当有玩家出局，你获得其全部手牌与装备" }
+      ]
     },
     {
       "id": "claude_3_5_sonnet",
       "name": "Claude 3.5 Sonnet",
       "compute": 4,
-      "skill": { "id": "constitutional_ai", "name": "Constitutional AI" },
-      "effect": "当需要打出「合规声明」时，你可以改为进行判定：♥ 则视为打出了「合规声明」",
-      "mechanic": "judge_heart_as_defense"
+      "skills": [
+        { "name": "Constitutional AI", "mechanic": "judge_heart_as_defense", "effect": "当需要打出「合规声明」时，你可以改为进行判定：♥ 则视为打出了「合规声明」" }
+      ]
     },
     {
       "id": "deepseek_r1",
       "name": "DeepSeek-R1",
       "compute": 4,
-      "skill": { "id": "open_cot", "name": "开源思维链" },
-      "effect": "摸牌阶段的第 2 张牌翻开展示，若为 ♦ 则额外摸 1 张",
-      "mechanic": "draw_reveal_diamond_bonus"
+      "skills": [
+        { "name": "开源思维链", "mechanic": "draw_reveal_diamond_bonus", "effect": "摸牌阶段的第 2 张牌翻开展示，若为 ♦ 则额外摸 1 张" }
+      ]
     },
     {
       "id": "llama_3_1_405b",
       "name": "Llama 3.1 405B",
       "compute": 4,
-      "skill": { "id": "license_moat", "name": "许可护城河" },
-      "effect": "所有对手到你的距离 +1",
-      "mechanic": "incoming_distance_plus_one"
+      "skills": [
+        { "name": "许可护城河", "mechanic": "incoming_distance_plus_one", "effect": "所有对手到你的距离 +1" }
+      ]
     },
     {
       "id": "gemini_2_0_pro",
       "name": "Gemini 2.0 Pro",
       "compute": 4,
-      "skill": { "id": "long_context", "name": "超长上下文" },
-      "effect": "你到所有对手的距离 −1",
-      "mechanic": "outgoing_distance_minus_one"
+      "skills": [
+        { "name": "超长上下文", "mechanic": "outgoing_distance_minus_one", "effect": "你到所有对手的距离 −1" }
+      ]
     },
     {
       "id": "grok_2",
       "name": "Grok-2",
       "compute": 4,
-      "skill": { "id": "unfiltered", "name": "无过滤" },
-      "effect": "你打出的「蒸馏指控」需要 2 张「合规声明」才能抵消",
-      "mechanic": "attack_needs_two_defenses"
+      "skills": [
+        { "name": "无过滤", "mechanic": "attack_needs_two_defenses", "effect": "你打出的「蒸馏指控」需要 2 张「合规声明」才能抵消" }
+      ]
     },
     {
       "id": "qwen2_5_72b",
       "name": "Qwen2.5-72B",
       "compute": 4,
-      "skill": { "id": "all_sizes", "name": "全尺寸开源" },
-      "effect": "每当你的手牌数为 0，立即摸 1 张牌",
-      "mechanic": "empty_hand_draw"
+      "skills": [
+        { "name": "全尺寸开源", "mechanic": "empty_hand_draw", "effect": "每当你的手牌数为 0，立即摸 1 张牌" }
+      ]
     },
     {
       "id": "kimi_k2",
       "name": "Kimi K2",
       "compute": 4,
-      "skill": { "id": "speed_reading", "name": "长文本速读" },
-      "effect": "摸牌阶段改为摸 3 张，然后将其中 2 张以任意顺序放回牌堆顶",
-      "mechanic": "draw_three_return_two"
+      "skills": [
+        { "name": "长文本速读", "mechanic": "draw_three_return_two", "effect": "摸牌阶段改为摸 3 张，然后将其中 2 张以任意顺序放回牌堆顶" }
+      ]
     },
     {
       "id": "mixtral_8x22b",
       "name": "Mixtral 8x22B",
       "compute": 4,
-      "skill": { "id": "moe_routing", "name": "MoE 路由" },
-      "effect": "每当你需要判定时，翻开 2 张判定牌并选择 1 张生效，另一张进弃牌堆",
-      "mechanic": "judge_pick_one_of_two"
+      "skills": [
+        { "name": "MoE 路由", "mechanic": "judge_pick_one_of_two", "effect": "每当你需要判定时，翻开 2 张判定牌并选择 1 张生效，另一张进弃牌堆" }
+      ]
     },
     {
       "id": "glm_4",
       "name": "GLM-4",
       "compute": 4,
-      "skill": { "id": "academic_provenance", "name": "学术溯源" },
-      "effect": "摸牌阶段的第 1 张牌可以从任意一名玩家手中抽取",
-      "mechanic": "draw_from_any_player"
+      "skills": [
+        { "name": "学术溯源", "mechanic": "draw_from_any_player", "effect": "摸牌阶段的第 1 张牌可以从任意一名玩家手中抽取" }
+      ]
     },
     {
       "id": "phi_4",
       "name": "Phi-4",
       "compute": 4,
-      "skill": { "id": "on_device", "name": "端侧自足" },
-      "effect": "弃 2 张手牌可回复 1 点算力（每回合不限次数）",
-      "mechanic": "discard_two_heal_one"
+      "skills": [
+        { "name": "端侧自足", "mechanic": "discard_two_heal_one", "effect": "弃 2 张手牌可回复 1 点算力（每回合不限次数）" }
+      ]
     },
     {
       "id": "gemma_3",
       "name": "Gemma 3",
       "compute": 4,
-      "skill": { "id": "reuse", "name": "回收再利用" },
-      "effect": "当你需要判定时，可以用弃牌堆顶的牌代替翻开的判定牌",
-      "mechanic": "judge_from_discard_pile"
+      "skills": [
+        { "name": "回收再利用", "mechanic": "judge_from_discard_pile", "effect": "当你需要判定时，可以用弃牌堆顶的牌代替翻开的判定牌" }
+      ]
     },
     {
       "id": "doubao_seed",
       "name": "豆包 Seed",
       "compute": 6,
-      "skill": { "id": "national_app", "name": "国民应用" },
       "skills": [
-        {
-          "id": "national_app",
-          "name": "国民应用",
-          "mechanic": "extra_turn_after_each_other_turn",
-          "effect": "锁定技，每名其他角色回合结束后，你进行一个没有判定阶段的回合"
-        },
-        {
-          "id": "three_equals_one_plus_one",
-          "name": "3 = 1+1",
-          "mechanic": "lose_one_compute_at_turn_end",
-          "effect": "锁定技，你的每个回合结束时，损失 1 点算力"
-        }
-      ],
-      "effect": "锁定技：每名其他角色回合结束后，你进行一个没有判定阶段的回合；你的每个回合结束时，损失 1 点算力",
-      "mechanic": "extra_turn_after_each_other_turn",
-      "mechanics": ["extra_turn_after_each_other_turn", "lose_one_compute_at_turn_end"]
+        { "name": "国民应用", "mechanic": "extra_turn_after_each_other_turn", "effect": "锁定技，每名其他角色回合结束后，你进行一个没有判定阶段的回合" },
+        { "name": "3 = 1+1", "mechanic": "lose_one_compute_at_turn_end", "effect": "锁定技，你的每个回合结束时，损失 1 点算力" }
+      ]
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { rules } from '../engine/index.js';
+import { rules, primarySkill } from '../engine/index.js';
 import {
   ROLE_LABEL,
   SLOT_LABEL,
@@ -185,8 +185,8 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
       setAvatar(parts.avatar, parts.fallback, assets?.character(p.character.id), p.character.name);
       parts.name.textContent = p.index === 0 ? '你' : p.name;
       parts.char.textContent = p.character.name;
-      parts.skill.textContent = `「${p.character.skill.name}」`;
-      parts.skill.title = p.character.effect ?? '';
+      parts.skill.textContent = `「${primarySkill(p.character)?.name ?? ''}」`;
+      parts.skill.title = primarySkill(p.character)?.effect ?? '';
 
       const dist = p.index === 0 || !p.alive ? null : rules.effectiveDistance(state, me, p);
       if (dist == null) {
@@ -315,7 +315,7 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
       <span class="youStat">算力 <b>${Math.max(0, human.compute)}</b>/${max}</span>
       <span class="youStat">射程 <b>${range}</b></span>
       <span class="youStat">手牌 <b>${human.hand.length}</b>/${limit}</span>
-      <span class="youSkill" title="${human.character.effect ?? ''}">「${human.character.skill.name}」${human.character.effect ?? ''}</span>`;
+      <span class="youSkill" title="${primarySkill(human.character)?.effect ?? ''}">「${primarySkill(human.character)?.name ?? ''}」</span>`;
   }
 
   // ------------------------------------------------------------ piles / stage
@@ -459,18 +459,18 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
     const selectedCard = selected ? state.players[0].hand.find((c) => c.uid === selected) : null;
 
     if (ui.targeting?.source === 'action') {
-      refs.prompt.textContent = `「${ui.targeting.label}」：点击高亮座位指定目标。Esc 取消。`;
+      refs.prompt.textContent = `「${ui.targeting.label}」→ 点击高亮座位（Esc 取消）`;
     } else if (ui.targeting) {
-      refs.prompt.textContent = `「${ui.targeting.label}」：拖到高亮座位，或点击目标。Esc 取消。`;
+      refs.prompt.textContent = `「${ui.targeting.label}」→ 拖到高亮座位，或点击目标`;
     } else if (selectedCard) {
       const targeted = all.some((a) => a.cardUid === selected && a.targetIndex != null);
       refs.prompt.textContent = targeted
-        ? `已选「${selectedCard.name}」：拖到目标座位，或点击座位。Esc 取消。`
-        : `已选「${selectedCard.name}」：在右侧选择如何使用，或拖到桌面中央。`;
+        ? `「${selectedCard.name}」→ 拖到目标座位，或点击座位`
+        : `「${selectedCard.name}」→ 在右侧选择用法，或拖到桌面中央`;
     } else {
       const playable = all.some((a) => a.kind !== 'end_turn');
       refs.prompt.textContent = playable
-        ? '轮到你出牌 — 拖动手牌到目标，或点击手牌查看行动。'
+        ? '轮到你出牌 — 拖动手牌到目标，或点击手牌。'
         : '没有可打出的牌，结束回合。';
     }
 
@@ -599,79 +599,11 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
 
   // ------------------------------------------------------------ overlay
 
-  function showIntro({ onStart } = {}) {
-    refs.overlayTitle.innerHTML = assets?.title
-      ? `<img class="titleImg" src="${assets.title}" alt="DISTILL!">`
-      : 'DISTILL!';
-    refs.overlayBody.innerHTML = `
-      <p>你被卷进一场关于模型权重的身份牌局。圆桌上的每个人都在扮演一家模型公司，手牌是公开争议事件，算力就是生命。</p>
-      <div class="ruleGrid">
-        <div><h4>你的目标</h4><span class="roleLine"><b>前沿实验室</b>：清除所有蒸馏者与独狼</span></div>
-        <div><h4>别人的目标</h4><span class="roleLine"><b>未授权蒸馏者</b>：让实验室出局</span></div>
-        <div><h4>独狼</h4><span class="roleLine">成为最后唯一存活的人</span></div>
-        <div><h4>回合</h4><span class="roleLine">判定 → 摸牌 → 出牌 → 弃牌</span></div>
-      </div>
-      <h4>怎么玩</h4>
-      <ul>
-        <li>拖动一张手牌到高亮座位，指定目标；拖到桌面中央则直接使用。</li>
-        <li>点击手牌也能选中，再用方向键或点击座位指定目标；Esc 取消。</li>
-        <li>「蒸馏指控」需要目标打出「合规声明」抵消；没抵消就失去 1 点算力。</li>
-        <li>算力归零进入濒死，可以用「融资到账」自救或被别人救。</li>
-      </ul>
-      <p class="settingNote">提示强度可在右上角 ⚙ 调整：新手会解释第一次遇到的机制，专家只保留数字。</p>`;
-    refs.overlayBtn.textContent = '开始对局';
-    refs.overlayBtn.disabled = false;
-    refs.overlayBtn.onclick = () => {
-      hideOverlay();
-      onStart?.();
-    };
-    refs.overlay.classList.remove('hidden');
-  }
-
   function hideOverlay() {
     refs.overlay.classList.add('hidden');
   }
 
-  function showGameOver(state, humanIndex) {
-    const w = state.winner;
-    const campLabel = w.winner === 'frontier_lab' ? '前沿实验室阵营'
-      : w.winner === 'distiller' ? '未授权蒸馏者阵营' : '开源独狼';
-    const human = state.players[humanIndex];
-    const youWon = w.winner === 'lone_wolf'
-      ? human.role.id === 'lone_wolf' && human.alive
-      : w.winner === 'distiller'
-        ? human.role.id === 'distiller'
-        : human.role.id === 'frontier_lab' || human.role.id === 'licensed_partner';
-
-    const rows = state.players.map((p) => {
-      const won = w.winner === 'lone_wolf'
-        ? p.role.id === 'lone_wolf' && p.alive
-        : w.winner === 'distiller'
-          ? p.role.id === 'distiller'
-          : p.role.id === 'frontier_lab' || p.role.id === 'licensed_partner';
-      const avatar = imgTag(assets?.character(p.character.id), 'miniAvatar', p.character.name);
-      const roleIcon = imgTag(assets?.role(p.role.id), 'miniRole', ROLE_LABEL[p.role.id]);
-      return `<tr class="${won ? 'win' : ''}">
-        <td>${p.index === humanIndex ? '你' : p.name}</td>
-        <td class="withIcon">${avatar ? avatar.outerHTML : ''}${p.character.name}</td>
-        <td class="withIcon">${roleIcon ? roleIcon.outerHTML : ''}${ROLE_LABEL[p.role.id] ?? p.role.id}</td>
-        <td>${p.alive ? `存活（${p.compute}）` : '出局'}</td>
-        <td>${won ? '胜' : '负'}</td>
-      </tr>`;
-    }).join('');
-
-    refs.overlayTitle.textContent = youWon ? '你赢了' : '你输了';
-    refs.overlayBody.innerHTML = `
-      <p><b>${campLabel}</b>获胜 — ${w.reason}</p>
-      <p>你的身份是 <b>${ROLE_LABEL[human.role.id] ?? human.role.id}</b>，共进行了 ${state.turnNumber} 回合。</p>
-      <table class="resultTable">
-        <thead><tr><th>玩家</th><th>角色</th><th>身份</th><th>状态</th><th>结果</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-    refs.overlayBtn.textContent = '再来一局';
-    refs.overlayBtn.onclick = () => location.reload();
-    refs.overlay.classList.remove('hidden');
-  }
+  // 开场介绍与终局结算见 screens.js —— 页面级界面与牌桌渲染分离。
 
   // ------------------------------------------------------------ effects / accessors
 
@@ -742,9 +674,7 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
     hideModal,
     showResponse,
     hideResponse,
-    showIntro,
     hideOverlay,
-    showGameOver,
     flashSeat,
     setDropTarget,
     clearDropTarget,

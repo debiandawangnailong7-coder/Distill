@@ -93,8 +93,10 @@ for (const [id, name, base] of [
 const charDefault = pickAsset(GENERIC.charDefault);
 
 // 专属素材：有 SVG/PNG 则 ready，没有则走通用兜底。缺文件不会阻塞，只是少一张立绘。
+// portrait 轴是开场介绍页用的普通立绘（Q 版座位头像之外的另一条轴），缺省退回奶蛙占位。
 for (const c of characters) {
   const picked = pickAsset(`assets/characters/${c.id}`);
+  const portrait = pickAsset(`assets/portraits/${c.id}`);
   entries.push({
     kind: 'character',
     id: c.id,
@@ -103,7 +105,9 @@ for (const c of characters) {
     format: picked?.format ?? null,
     status: picked ? 'ready' : 'generic',
     fallback: charDefault?.file ?? null,
-    skill: c.skill.name,
+    portrait: portrait?.file ?? null,
+    portraitFallback: charDefault?.file ?? null,
+    skill: c.skills?.[0]?.name ?? '',
   });
 }
 

@@ -1,8 +1,21 @@
+/**
+ * Game 类：对局编排。
+ * 只负责流程与状态——建局、回合循环、阶段推进、合法行动、判定与决策分发。
+ * 战斗/生死结算见 combat.js，卡牌与主动产品结算见 effects.js，两者都以
+ * (game, ...) 自由函数实现，这里做单行委托以保持对外 API 稳定。
+ */
 import { mulberry32, shuffle } from './rng.js';
 import * as R from './rules.js';
-
-const SLOT_ORDER = ['weapon', 'distance_in', 'distance_out', 'support'];
-const TASK_SLOTS = ['task_chat', 'task_code', 'task_office', 'task_tts', 'task_stt', 'task_iti'];
+import {
+  dealDamage,
+  heal,
+  resolveDying,
+  eliminate,
+  offerDefense,
+  resolveAttack,
+  resolveDuel,
+} from './combat.js';
+import { playCard, activateTask, activateCharacterAbility } from './effects.js';
 
 /** 判定用途 id → 展示文案。id 同时下发给 AI，让它按用途选择有利的判定牌。 */
 const JUDGE_LABELS = {
@@ -25,9 +38,8 @@ export class Game {
     this.typesById = new Map(cardTypes.cardTypes.map((t) => [t.id, t]));
     this.skillNameByMechanic = new Map();
     for (const c of characters.characters) {
-      for (const s of c.skills ?? [c.skill]) {
-        const mechanic = s.mechanic ?? c.mechanic;
-        if (mechanic) this.skillNameByMechanic.set(mechanic, s.name);
+      for (const s of c.skills ?? []) {
+        if (s.mechanic) this.skillNameByMechanic.set(s.mechanic, s.name);
       }
     }
     this.roleDefs = roles;
@@ -77,7 +89,7 @@ export class Game {
         character,
         compute,
         hand: [],
-        equipment: Object.fromEntries([...SLOT_ORDER, ...TASK_SLOTS].map((s) => [s, null])),
+        equipment: Object.fromEntries(R.EQUIPMENT_SLOTS.map((s) => [s, null])),
         jail: null,
         dynamite: null,
         alive: true,
@@ -89,7 +101,7 @@ export class Game {
   }
 
   buildDrawPile(deck) {
-    let cards = deck.cards.map((c) => ({ ...c }));
+    let cards = deck.cards.map((c) => this.hydrateCard({ ...c }));
     // 7 人局按设计文档追加 4 张指控 + 4 张声明
     if (this.playerCount === 7) {
       const bonus = this.roleDefs.rules.sevenPlayerBonus;
@@ -97,24 +109,37 @@ export class Game {
       for (const [typeId, n] of [['attack', bonus.attack], ['defense', bonus.defense]]) {
         const t = this.typesById.get(typeId);
         for (let i = 0; i < n; i++) {
-          extra.push({
+          extra.push(this.hydrateCard({
             uid: `${typeId}_bonus_${i}`,
             typeId,
             suit: t.suits[i % t.suits.length],
             rank: 2 + ((i * 5) % 13),
             flavor: t.flavors?.[i] ?? undefined,
-            name: t.name,
-            category: t.category,
-            kind: t.kind,
-            target: t.target,
-            effect: t.effect,
-            params: t.params ? { ...t.params } : undefined,
-          });
+          }));
         }
       }
       cards = cards.concat(extra);
     }
     this.state.drawPile = shuffle(cards, this.rand);
+  }
+
+  /**
+   * 牌型水合：deck.json 只保存每张牌的独立事实（uid/花色/点数/flavor），
+   * 牌型定义统一来自 cardTypes.json，在这里按 typeId 合并为运行时自描述的卡牌对象。
+   * params 直接引用注册表（卡牌参数运行期只读），避免逐卡深拷贝。
+   */
+  hydrateCard(card) {
+    const t = this.typesById.get(card.typeId);
+    if (!t) throw new Error(`未知牌型 ${card.typeId}`);
+    card.name = t.name;
+    card.category = t.category;
+    card.kind = t.kind;
+    if (t.slot) card.slot = t.slot;
+    if (t.task) card.task = t.task;
+    if (t.target) card.target = t.target;
+    if (t.effect) card.effect = t.effect;
+    if (t.params) card.params = t.params;
+    return card;
   }
 
   dealStartingHands() {
@@ -123,7 +148,7 @@ export class Game {
     }
   }
 
-  /** 卡牌在构建期已内联牌型定义（name/kind/slot/params），这里直接返回卡牌自身。 */
+  /** 卡牌在建局时已按注册表水合牌型定义（name/kind/slot/params），这里直接返回卡牌自身。 */
   typeOf(card) {
     return card ?? null;
   }
@@ -161,7 +186,7 @@ export class Game {
       type: 'skill',
       playerIndex: player.index,
       mechanic,
-      skill: this.skillNameByMechanic.get(mechanic) ?? player.character?.skill?.name ?? mechanic,
+      skill: this.skillNameByMechanic.get(mechanic) ?? R.primarySkill(player.character)?.name ?? mechanic,
     });
   }
 
@@ -302,7 +327,7 @@ export class Game {
       const choice = await this.ask(player, {
         type: 'select',
         purpose: 'judge_choice',
-        prompt: `${player.character.name}「${player.character.skill.name}」：选择一张判定牌（${label}）`,
+        prompt: `${player.character.name}「${R.primarySkill(player.character)?.name}」：选择一张判定牌（${label}）`,
         options: candidates.map((c) => ({ id: c.id, label: c.label, card: c.card })),
         min: 1,
         max: 1,
@@ -333,157 +358,46 @@ export class Game {
     return `${SUIT[card.suit]}${RANK[card.rank] ?? card.rank} ${t.name}${card.flavor ? ` · ${card.flavor}` : ''}`;
   }
 
-  // ---------------------------------------------------------------- damage
-
-  async dealDamage(source, target, amount, cause) {
-    if (!target.alive || amount <= 0) return;
-    target.compute -= amount;
-    this.emit({ type: 'damage', targetIndex: target.index, sourceIndex: source?.index ?? null, amount, cause });
-    this.log(`${target.name} 失去 ${amount} 点算力（${cause}），剩余 ${Math.max(0, target.compute)}`, {
-      targetIndex: target.index,
-    });
-
-    if (R.hasMechanic(target, 'on_damaged_all_others_discard') && target.alive) {
-      this.noteSkill(target, 'on_damaged_all_others_discard');
-      for (const other of this.othersFrom(target)) {
-        if (!other.alive || !other.hand.length) continue;
-        const choice = await this.ask(other, {
-          type: 'select',
-          purpose: 'forced_discard',
-          prompt: `${target.name}「成本外溢」触发：你必须弃掉 1 张手牌`,
-          options: other.hand.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-          min: 1,
-          max: 1,
-        });
-        const card = this.removeFromHand(other, choice.ids[0]);
-        this.toDiscard(card);
-        this.log(`${other.name} 因「成本外溢」弃掉 ${this.cardLabel(card)}`);
-      }
-    }
-
-    if (R.hasMechanic(target, 'on_damaged_steal_from_source') && source?.alive && source.hand.length) {
-      this.noteSkill(target, 'on_damaged_steal_from_source');
-      const stolen = this.stealRandomFromHand(source);
-      if (stolen) {
-        target.hand.push(stolen);
-        this.log(`${target.name}「音色风波」从 ${source.name} 手中抽走 1 张牌`);
-        await this.afterHandChange(source);
-      }
-    }
-
-    if (target.compute <= 0) await this.resolveDying(target, source);
-    await this.afterHandChange(target);
-    this.checkGameOver();
-  }
+  // ---------------------------------------------------------------- combat / effects 委托
 
   async heal(player, amount) {
-    const cap = R.maxCompute(player);
-    const before = player.compute;
-    player.compute = Math.min(cap, player.compute + amount);
-    const gained = player.compute - before;
-    if (gained > 0) {
-      this.emit({ type: 'heal', playerIndex: player.index, amount: gained });
-      this.log(`${player.name} 回复 ${gained} 点算力 → ${player.compute}`);
-    }
-    return gained;
+    return heal(this, player, amount);
+  }
+
+  async dealDamage(source, target, amount, cause) {
+    return dealDamage(this, source, target, amount, cause);
   }
 
   async resolveDying(victim, source) {
-    this.emit({ type: 'dying', playerIndex: victim.index });
-    this.log(`⚠ ${victim.name} 进入濒死（算力 ${victim.compute}）`);
-
-    const order = [victim, ...this.othersFrom(victim)];
-    while (victim.compute <= 0) {
-      let saved = false;
-      for (const p of order) {
-        if (!p.alive || p.compute <= 0) continue;
-        const heals = p.hand.filter((c) => this.typeOf(c).kind === 'heal');
-        if (!heals.length) continue;
-        const isSelf = p.index === victim.index;
-        const choice = await this.ask(p, {
-          type: 'select',
-          purpose: 'dying_save',
-          prompt: isSelf
-            ? `你已濒死：打出「融资到账」自救，或放弃`
-            : `${victim.name} 濒死：打出「融资到账」救援，或不介入`,
-          options: [
-            ...heals.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-            { id: 'pass', label: '不介入' },
-          ],
-          min: 1,
-          max: 1,
-          dying: victim.index,
-        });
-        if (choice.ids[0] === 'pass') continue;
-        const card = this.removeFromHand(p, choice.ids[0]);
-        this.toDiscard(card);
-        victim.compute += 1;
-        this.emit({ type: 'rescue', playerIndex: p.index, targetIndex: victim.index });
-        this.noteRelation(p.index, victim.index, -2);
-        this.log(`${p.name} 打出「融资到账」救援 ${victim.name} → 算力 ${victim.compute}`);
-        await this.afterHandChange(p);
-        saved = true;
-        break;
-      }
-      if (!saved) break;
-    }
-
-    if (victim.compute <= 0) await this.eliminate(victim, source);
+    return resolveDying(this, victim, source);
   }
 
   async eliminate(victim, killer) {
-    victim.alive = false;
-    victim.compute = 0;
-    victim.revealed = true;
-    victim.jail = null;
-    victim.dynamite = null;
-    this.state.inPlay.jail = this.alivePlayers().some((p) => p.jail);
-    this.state.inPlay.dynamite = this.alivePlayers().some((p) => p.dynamite);
+    return eliminate(this, victim, killer);
+  }
 
-    this.emit({ type: 'eliminated', playerIndex: victim.index, role: victim.role, killerIndex: killer?.index ?? null });
-    this.log(`✖ ${victim.name} 出局 — 身份是【${victim.role.name}】`, { playerIndex: victim.index });
+  async offerDefense(player, prompt, source, meta = {}) {
+    return offerDefense(this, player, prompt, source, meta);
+  }
 
-    const loot = [...victim.hand];
-    const equip = Object.entries(victim.equipment)
-      .filter(([, c]) => c)
-      .map(([slot, c]) => ({ slot, card: c }));
+  async resolveAttack(source, target, cause) {
+    return resolveAttack(this, source, target, cause);
+  }
 
-    for (const s of SLOT_ORDER.concat(TASK_SLOTS)) victim.equipment[s] = null;
+  async resolveDuel(challenger, target) {
+    return resolveDuel(this, challenger, target);
+  }
 
-    const sora = this.state.players.find(
-      (p) => p.alive && R.hasMechanic(p, 'on_eliminated_loot') && p.index !== victim.index
-    );
-    if (sora) {
-      this.noteSkill(sora, 'on_eliminated_loot');
-      sora.hand.push(...loot);
-      for (const { slot, card } of equip) sora.equipment[slot] = card;
-      this.log(`${sora.name}「数据回收」获得了 ${victim.name} 的全部手牌与装备`);
-      this.emit({ type: 'loot', playerIndex: sora.index, fromIndex: victim.index });
-    } else {
-      loot.forEach((c) => this.toDiscard(c));
-      equip.forEach(({ card }) => this.toDiscard(card));
-    }
-    victim.hand = [];
+  async playCard(player, card, targetIndex, opts = {}) {
+    return playCard(this, player, card, targetIndex, opts);
+  }
 
-    if (killer && killer.alive) {
-      if (victim.role.id === R.ROLE.DISTILLER) {
-        await this.drawCards(killer, 3);
-        this.log(`${killer.name} 击倒了一名蒸馏者，摸 3 张牌`);
-      }
-      if (killer.role.id === R.ROLE.LAB && victim.role.id === R.ROLE.PARTNER) {
-        const lost = [...killer.hand];
-        killer.hand = [];
-        for (const s of SLOT_ORDER.concat(TASK_SLOTS)) {
-          if (killer.equipment[s]) {
-            lost.push(killer.equipment[s]);
-            killer.equipment[s] = null;
-          }
-        }
-        lost.forEach((c) => this.toDiscard(c));
-        this.log(`${killer.name} 误杀了授权被许可方，弃掉全部手牌与装备`);
-      }
-    }
-    this.checkGameOver();
+  async activateTask(player, task, targetIndex) {
+    return activateTask(this, player, task, targetIndex);
+  }
+
+  async activateCharacterAbility(player, ability) {
+    return activateCharacterAbility(this, player, ability);
   }
 
   stealRandomFromHand(from) {
@@ -501,81 +415,6 @@ export class Game {
     for (const p of this.state.players) p.revealed = true;
     this.emit({ type: 'gameOver', result });
     this.log(`🏁 游戏结束 — ${result.winner === R.ROLE.LAB ? '前沿实验室阵营' : result.winner === R.ROLE.DISTILLER ? '未授权蒸馏者阵营' : '开源独狼'}获胜：${result.reason}`);
-  }
-
-  // ---------------------------------------------------------------- responses
-
-  async offerDefense(player, prompt, source, meta = {}) {
-    const options = [];
-    const defenses = player.hand.filter((c) => this.canBeUsedAsDefense(c));
-    for (const c of defenses)
-      options.push({ id: `card:${c.uid}`, label: this.cardLabel(c), cardUid: c.uid, card: c });
-
-    const canJudge =
-      player.equipment.support?.kind === 'barrel' || R.hasMechanic(player, 'judge_heart_as_defense');
-    if (canJudge) {
-      if (R.hasMechanic(player, 'judge_heart_as_defense')) this.noteSkill(player, 'judge_heart_as_defense');
-      options.push({ id: 'judge', label: '进行对齐判定（♥ 视为声明）' });
-    }
-
-    options.push({ id: 'pass', label: '不响应' });
-
-    const choice = await this.ask(player, {
-      type: 'select',
-      purpose: 'defense_response',
-      prompt,
-      options,
-      min: 1,
-      max: 1,
-      response: true,
-      defenseCount: defenses.length,
-      sourceIndex: source?.index ?? null,
-      ...meta,
-    });
-    const id = choice.ids[0];
-
-    if (id === 'pass') return false;
-    if (id === 'judge') {
-      const flipped = await this.judge(player, 'barrel');
-      const ok = flipped?.suit === 'heart';
-      this.log(`${player.name} 对齐判定${ok ? '成功' : '失败'}`);
-      return ok;
-    }
-    const card = this.removeFromHand(player, id.slice('card:'.length));
-    this.toDiscard(card);
-    this.log(`${player.name} 打出 ${this.cardLabel(card)}`);
-    this.emit({ type: 'play', playerIndex: player.index, card, targetIndex: source?.index ?? null });
-    await this.afterHandChange(player);
-    return true;
-  }
-
-  async resolveAttack(source, target, cause = '蒸馏指控') {
-    const needed = R.hasMechanic(source, 'attack_needs_two_defenses') ? 2 : 1;
-    if (needed === 2) this.noteSkill(source, 'attack_needs_two_defenses');
-    this.emit({ type: 'attack', sourceIndex: source.index, targetIndex: target.index, cause });
-    this.noteRelation(source.index, target.index, 1);
-    this.log(`${source.name} 对 ${target.name} 发起「${cause}」${needed === 2 ? '（需 2 张声明）' : ''}`, {
-      sourceIndex: source.index,
-      targetIndex: target.index,
-    });
-
-    let dodged = 0;
-    while (dodged < needed) {
-      const ok = await this.offerDefense(
-        target,
-        `${source.name} 的「${cause}」命中你${needed === 2 ? `（还需 ${needed - dodged} 张声明）` : ''}`,
-        source,
-        { needed, remaining: needed - dodged }
-      );
-      if (!ok) break;
-      dodged++;
-    }
-    if (dodged >= needed) {
-      this.log(`${target.name} 成功否认`);
-      return false;
-    }
-    await this.dealDamage(source, target, 1, cause);
-    return true;
   }
 
   // ---------------------------------------------------------------- legal actions
@@ -719,7 +558,7 @@ export class Game {
       });
     }
     if (R.hasMechanic(player, 'discard_two_heal_one') && player.compute < R.maxCompute(player) && player.hand.length >= 2) {
-      actions.push({ kind: 'character_ability', ability: 'discard_two_heal_one', label: `「${player.character.skill.name}」弃 2 张手牌回复 1 点算力` });
+      actions.push({ kind: 'character_ability', ability: 'discard_two_heal_one', label: `「${R.primarySkill(player.character)?.name}」弃 2 张手牌回复 1 点算力` });
     }
 
     actions.push({ kind: 'end_turn', label: '结束回合' });
@@ -800,7 +639,7 @@ export class Game {
     if (player.dynamite) {
       const card = player.dynamite;
       const flipped = await this.judge(player, 'dynamite');
-      const p = card.params;
+      const p = this.typeOf(card).params;
       const boom =
         flipped?.suit === p.judgeFailSuit && flipped.rank >= p.judgeFailRankMin && flipped.rank <= p.judgeFailRankMax;
       this.toDiscard(player.dynamite);
@@ -826,7 +665,7 @@ export class Game {
       player.jail = null;
       s.inPlay.jail = false;
       const flipped = await this.judge(player, 'jail');
-      const jailed = card.params.judgeFailSuits.includes(flipped?.suit);
+      const jailed = this.typeOf(card).params.judgeFailSuits.includes(flipped?.suit);
       this.toDiscard(card);
       if (jailed) {
         this.log(`${player.name} 被「账号封禁」，跳过摸牌与出牌阶段`);
@@ -838,9 +677,7 @@ export class Game {
   }
 
   async drawPhase(player) {
-    const m = player.character.mechanic;
-
-    if (m === 'draw_from_any_player') {
+    if (R.hasMechanic(player, 'draw_from_any_player')) {
       const donors = this.alivePlayers().filter((p) => p.index !== player.index && p.hand.length > 0);
       const options = [
         ...donors.map((p) => ({ id: String(p.index), label: `从 ${p.name} 手中抽取（${p.hand.length} 张）` })),
@@ -872,7 +709,7 @@ export class Game {
       return;
     }
 
-    if (m === 'draw_three_return_two') {
+    if (R.hasMechanic(player, 'draw_three_return_two')) {
       this.noteSkill(player, 'draw_three_return_two');
       const drawn = await this.drawCards(player, 3);
       if (drawn.length >= 2) {
@@ -896,7 +733,7 @@ export class Game {
     }
 
     const first = await this.drawCards(player, 1);
-    if (m === 'draw_reveal_diamond_bonus') {
+    if (R.hasMechanic(player, 'draw_reveal_diamond_bonus')) {
       const second = await this.drawCards(player, 1);
       const revealed = second[0];
       if (revealed) {
@@ -943,97 +780,6 @@ export class Game {
     if (choice.kind === 'character_ability') return this.activateCharacterAbility(player, choice.ability);
   }
 
-  async activateCharacterAbility(player, ability) {
-    if (ability !== 'discard_two_heal_one') return;
-    this.noteSkill(player, 'discard_two_heal_one');
-    const picked = await this.pickCards(player, '「端侧自足」：弃 2 张手牌', 2, 'ability_discard');
-    picked.forEach((c) => this.toDiscard(c));
-    await this.heal(player, 1);
-  }
-
-  async activateTask(player, task, targetIndex) {
-    player.taskUses[task] = (player.taskUses[task] ?? 0) + 1;
-    const s = this.state;
-
-    switch (task) {
-      case 'code': {
-        const target = this.player(targetIndex);
-        const picked = await this.pickCards(player, '【生产力杠杆】：弃 1 张手牌当作指控', 1, 'task_discard');
-        picked.forEach((c) => this.toDiscard(c));
-        this.emit({ type: 'play', playerIndex: player.index, card: player.equipment.task_code, targetIndex });
-        this.log(`${player.name} 发动【生产力杠杆】`);
-        player.attacksThisTurn++;
-        await this.resolveAttack(player, target, '生产力杠杆');
-        break;
-      }
-      case 'office': {
-        const picked = await this.pickCards(player, '【文档协作】：弃 2 张手牌', 2, 'task_discard');
-        picked.forEach((c) => this.toDiscard(c));
-        this.log(`${player.name} 发动【文档协作】`);
-        await this.heal(player, 1);
-        break;
-      }
-      case 'tts': {
-        const target = this.player(targetIndex);
-        const card = this.stealRandomFromHand(target);
-        if (!card) break;
-        const isAttack = this.typeOf(card).kind === 'attack';
-        this.emit({ type: 'reveal', playerIndex: target.index, cards: [card] });
-        this.log(`${player.name}【舆论广播】公开了 ${target.name} 的 ${this.cardLabel(card)}${isAttack ? '，并据为己有' : '，退回原主'}`);
-        if (isAttack) {
-          player.hand.push(card);
-          await this.afterHandChange(target);
-        } else {
-          target.hand.push(card);
-        }
-        break;
-      }
-      case 'stt': {
-        const peeked = [];
-        for (let i = 0; i < 2; i++) {
-          const c = this.drawTop();
-          if (c) peeked.push(c);
-        }
-        if (!peeked.length) break;
-        const choice = await this.ask(player, {
-          type: 'select',
-          purpose: 'reorder_deck_top',
-          prompt: '【会议纪要】：安排牌堆顶的顺序（第一张将先被摸到）',
-          options: peeked.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-          min: peeked.length,
-          max: peeked.length,
-          ordered: true,
-        });
-        const ordered = choice.ids
-          .map((uid) => peeked.find((c) => c.uid === uid))
-          .filter(Boolean);
-        for (const c of peeked) if (!ordered.includes(c)) ordered.push(c);
-        // drawPile 用 pop() 取牌，故牌堆顶要 push 在最后
-        for (const c of ordered.reverse()) s.drawPile.push(c);
-        this.log(`${player.name}【会议纪要】查看了牌堆顶 ${peeked.length} 张牌`);
-        break;
-      }
-      case 'iti': {
-        // 必须先取走弃牌堆顶，再弃手牌；否则刚弃掉的牌立刻成为堆顶，会被原样换回来。
-        const gained = s.discardPile.pop();
-        if (!gained) break;
-        const picked = await this.pickCards(
-          player,
-          `【风格迁移】：弃 1 张手牌，换取弃牌堆顶的 ${this.cardLabel(gained)}`,
-          1,
-          'task_discard'
-        );
-        picked.forEach((c) => this.toDiscard(c));
-        player.hand.push(gained);
-        this.emit({ type: 'reveal', playerIndex: player.index, cards: [gained] });
-        this.log(`${player.name}【风格迁移】从弃牌堆顶重绘出 ${this.cardLabel(gained)}`);
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
   async pickCards(player, prompt, count, purpose = 'discard_choice') {
     if (player.hand.length <= count) {
       const all = player.hand.splice(0);
@@ -1055,270 +801,6 @@ export class Game {
     }
     while (picked.length < count && player.hand.length) picked.push(player.hand.shift());
     return picked;
-  }
-
-  async playCard(player, card, targetIndex, { asAttack = false } = {}) {
-    const t = this.typeOf(card);
-    const target = targetIndex == null ? null : this.player(targetIndex);
-    this.emit({ type: 'play', playerIndex: player.index, card, targetIndex, typeId: card.typeId, asAttack });
-    this.log(`${player.name} 使用 ${this.cardLabel(card)}${asAttack ? '（当作指控）' : ''}${target ? ` → ${target.name}` : ''}`, {
-      card,
-      targetIndex,
-    });
-
-    if (asAttack || t.kind === 'attack') {
-      if (asAttack) {
-        this.noteSkill(player, 'any_card_as_attack');
-      } else if (player.attacksThisTurn >= 1 && R.unlimitedAttacks(player)) {
-        this.noteSkill(player, 'unlimited_attacks_per_turn');
-      }
-      this.toDiscard(card);
-      player.attacksThisTurn++;
-      await this.resolveAttack(player, target, `${t.name}${card.flavor ? ` · ${card.flavor}` : ''}`);
-      return;
-    }
-
-    switch (t.kind) {
-      case 'heal':
-        this.toDiscard(card);
-        await this.heal(player, t.params.heal);
-        break;
-
-      case 'draw':
-        this.toDiscard(card);
-        await this.drawCards(player, t.params.draw);
-        break;
-
-      case 'gamble': {
-        this.toDiscard(card);
-        const flipped = await this.judge(player, 'gamble');
-        if (flipped?.suit === t.params.failSuit) {
-          this.log(`${player.name} 榜单刷分翻车，失去 1 点算力但摸 3 张`);
-          await this.drawCards(player, t.params.failDraw);
-          await this.dealDamage(null, player, t.params.failDamage, '榜单刷分翻车');
-        } else {
-          await this.drawCards(player, t.params.successDraw);
-        }
-        break;
-      }
-
-      case 'general_store': {
-        const alive = this.alivePlayers();
-        const start = alive.findIndex((p) => p.index === player.index);
-        const order = [...alive.slice(start), ...alive.slice(0, start)];
-        const pool = [];
-        for (let i = 0; i < order.length; i++) {
-          const c = this.drawTop();
-          if (c) pool.push(c);
-        }
-        this.emit({ type: 'reveal', playerIndex: player.index, cards: pool });
-        this.log(`「HuggingFace 上架」公开 ${pool.length} 张牌`);
-        for (const p of order) {
-          if (!pool.length) break;
-          const choice = await this.ask(p, {
-            type: 'select',
-            purpose: 'general_store_pick',
-            prompt: '「HuggingFace 上架」：选择一张牌收入手牌',
-            options: pool.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-            min: 1,
-            max: 1,
-          });
-          const i = pool.findIndex((c) => c.uid === choice.ids[0]);
-          const taken = pool.splice(i < 0 ? 0 : i, 1)[0];
-          p.hand.push(taken);
-          this.log(`${p.name} 取走了 ${this.cardLabel(taken)}`);
-        }
-        pool.forEach((c) => this.toDiscard(c));
-        this.toDiscard(card);
-        break;
-      }
-
-      case 'mass_heal':
-        this.toDiscard(card);
-        for (const p of this.alivePlayers()) {
-          this.noteRelation(player.index, p.index, -1);
-          await this.heal(p, t.params.heal);
-        }
-        break;
-
-      case 'mass_attack': {
-        this.toDiscard(card);
-        for (const p of this.othersFrom(player)) {
-          if (!p.alive || this.state.gameOver) break;
-          this.noteRelation(player.index, p.index, 1);
-          const ok = await this.offerDefense(p, `「API 降价战」波及你`, player, { needed: 1, remaining: 1 });
-          if (!ok) await this.dealDamage(player, p, t.params.damage, 'API 降价战');
-        }
-        break;
-      }
-
-      case 'mass_challenge': {
-        this.toDiscard(card);
-        for (const p of this.othersFrom(player)) {
-          if (!p.alive || this.state.gameOver) break;
-          this.noteRelation(player.index, p.index, 0.5);
-          const attacks = p.hand.filter((c) => this.canBeUsedAsAttack(p, c));
-          let played = null;
-          if (attacks.length) {
-            const choice = await this.ask(p, {
-              type: 'select',
-              purpose: 'challenge_response',
-              prompt: `「监管问询」：打出一张「蒸馏指控」自证，否则失去 1 点算力`,
-              options: [
-                ...attacks.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-                { id: 'pass', label: '放弃（失去 1 点算力）' },
-              ],
-              min: 1,
-              max: 1,
-            });
-            if (choice.ids[0] !== 'pass') played = this.removeFromHand(p, choice.ids[0]);
-          }
-          if (played) {
-            this.toDiscard(played);
-            this.log(`${p.name} 打出 ${this.cardLabel(played)} 回应监管问询`);
-            await this.afterHandChange(p);
-          } else {
-            await this.dealDamage(player, p, t.params.damage, '监管问询');
-          }
-        }
-        break;
-      }
-
-      case 'duel': {
-        this.toDiscard(card);
-        await this.resolveDuel(player, target);
-        break;
-      }
-
-      case 'steal': {
-        this.toDiscard(card);
-        this.noteRelation(player.index, target.index, 1);
-        if (!target.hand.length && !Object.values(target.equipment).some(Boolean)) break;
-        const options = [];
-        if (target.hand.length) options.push({ id: 'hand', label: `随机抽取手牌（${target.hand.length} 张）` });
-        for (const [slot, eq] of Object.entries(target.equipment)) {
-          if (eq) options.push({ id: `slot:${slot}`, label: `夺取装备 ${this.typeOf(eq).name}` });
-        }
-        const choice = await this.ask(player, {
-          type: 'select',
-          purpose: 'steal_choice',
-          prompt: `「挖角研究员」：从 ${target.name} 处抽取`,
-          options,
-          min: 1,
-          max: 1,
-        });
-        const id = choice.ids[0];
-        if (id === 'hand') {
-          const stolen = this.stealRandomFromHand(target);
-          if (stolen) {
-            player.hand.push(stolen);
-            this.log(`${player.name} 从 ${target.name} 手中抽走 1 张牌`);
-            await this.afterHandChange(target);
-          }
-        } else {
-          const slot = id.slice('slot:'.length);
-          const eq = target.equipment[slot];
-          target.equipment[slot] = null;
-          player.equipment[slot] = eq;
-          this.log(`${player.name} 夺走了 ${target.name} 的「${this.typeOf(eq).name}」`);
-        }
-        break;
-      }
-
-      case 'force_discard': {
-        this.toDiscard(card);
-        this.noteRelation(player.index, target.index, 1);
-        if (!target.hand.length && !Object.values(target.equipment).some(Boolean)) break;
-        const options = [];
-        if (target.hand.length) options.push({ id: 'hand', label: `随机弃掉手牌（${target.hand.length} 张）` });
-        for (const [slot, eq] of Object.entries(target.equipment)) {
-          if (eq) options.push({ id: `slot:${slot}`, label: `弃掉装备 ${this.typeOf(eq).name}` });
-        }
-        const choice = await this.ask(player, {
-          type: 'select',
-          purpose: 'discard_victim_choice',
-          prompt: `「律师函 C&D」：令 ${target.name} 弃掉`,
-          options,
-          min: 1,
-          max: 1,
-        });
-        const id = choice.ids[0];
-        if (id === 'hand') {
-          const gone = this.stealRandomFromHand(target);
-          this.toDiscard(gone);
-          this.log(`${target.name} 被迫弃掉 1 张手牌`);
-          await this.afterHandChange(target);
-        } else {
-          const slot = id.slice('slot:'.length);
-          const eq = target.equipment[slot];
-          target.equipment[slot] = null;
-          this.toDiscard(eq);
-          this.log(`${target.name} 被迫弃掉装备「${this.typeOf(eq).name}」`);
-        }
-        break;
-      }
-
-      case 'jail':
-        target.jail = card;
-        this.state.inPlay.jail = true;
-        this.noteRelation(player.index, target.index, 1);
-        break;
-
-      case 'dynamite':
-        player.dynamite = card;
-        this.state.inPlay.dynamite = true;
-        break;
-
-      case 'weapon':
-      case 'distance':
-      case 'barrel':
-      case 'task': {
-        const replaced = player.equipment[t.slot];
-        player.equipment[t.slot] = card;
-        if (replaced) this.toDiscard(replaced);
-        this.emit({ type: 'equip', playerIndex: player.index, slot: t.slot, card });
-        break;
-      }
-
-      default:
-        this.toDiscard(card);
-        break;
-    }
-    this.checkGameOver();
-  }
-
-  async resolveDuel(challenger, target) {
-    let current = target;
-    this.noteRelation(challenger.index, target.index, 1);
-    this.log(`「Benchmark 对决」：${challenger.name} vs ${target.name}`);
-    for (let guard = 0; guard < 100; guard++) {
-      const other = current.index === challenger.index ? target : challenger;
-      const attacks = current.hand.filter((c) => this.canBeUsedAsAttack(current, c));
-      let played = null;
-      if (attacks.length) {
-        const choice = await this.ask(current, {
-          type: 'select',
-          purpose: 'duel_response',
-          prompt: `「Benchmark 对决」对 ${other.name}：打出一张「蒸馏指控」继续，或认输（失去 1 点算力）`,
-          options: [
-            ...attacks.map((c) => ({ id: c.uid, label: this.cardLabel(c), card: c })),
-            { id: 'pass', label: '认输' },
-          ],
-          min: 1,
-          max: 1,
-        });
-        if (choice.ids[0] !== 'pass') played = this.removeFromHand(current, choice.ids[0]);
-      }
-      if (!played) break;
-      this.toDiscard(played);
-      this.log(`${current.name} 在对决中打出 ${this.cardLabel(played)}`);
-      await this.afterHandChange(current);
-      current = other;
-    }
-    const loser = current;
-    const winner = loser.index === challenger.index ? target : challenger;
-    this.log(`${loser.name} 在 Benchmark 对决中落败`);
-    await this.dealDamage(winner, loser, 1, 'Benchmark 对决');
   }
 
   async discardPhase(player) {

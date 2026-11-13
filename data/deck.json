@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "generatedFrom": "data/cardTypes.json",
   "generator": "scripts/build-deck.mjs",
   "totalCards": 102,
@@ -33,1432 +33,664 @@
       "typeId": "attack",
       "suit": "diamond",
       "rank": 2,
-      "flavor": "ToS 第七条",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "ToS 第七条"
     },
     {
       "uid": "attack_02",
       "typeId": "attack",
       "suit": "club",
       "rank": 3,
-      "flavor": "训练数据溯源",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "训练数据溯源"
     },
     {
       "uid": "attack_03",
       "typeId": "attack",
       "suit": "spade",
       "rank": 4,
-      "flavor": "蒸馏自 R1？",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "蒸馏自 R1？"
     },
     {
       "uid": "attack_04",
       "typeId": "attack",
       "suit": "heart",
       "rank": 5,
-      "flavor": "榜单刷分质疑",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "榜单刷分质疑"
     },
     {
       "uid": "attack_05",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 6,
-      "flavor": "基准污染",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "基准污染"
     },
     {
       "uid": "attack_06",
       "typeId": "attack",
       "suit": "club",
       "rank": 7,
-      "flavor": "API 输出爬取",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "API 输出爬取"
     },
     {
       "uid": "attack_07",
       "typeId": "attack",
       "suit": "spade",
       "rank": 8,
-      "flavor": "影子模型",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "影子模型"
     },
     {
       "uid": "attack_08",
       "typeId": "attack",
       "suit": "heart",
       "rank": 9,
-      "flavor": "能力复刻",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "能力复刻"
     },
     {
       "uid": "attack_09",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 10,
-      "flavor": "合成数据？",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "合成数据？"
     },
     {
       "uid": "attack_10",
       "typeId": "attack",
       "suit": "club",
       "rank": 11,
-      "flavor": "越狱提示词",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "越狱提示词"
     },
     {
       "uid": "attack_11",
       "typeId": "attack",
       "suit": "spade",
       "rank": 12,
-      "flavor": "系统提示泄露",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "系统提示泄露"
     },
     {
       "uid": "attack_12",
       "typeId": "attack",
       "suit": "heart",
       "rank": 13,
-      "flavor": "逆向工程",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "逆向工程"
     },
     {
       "uid": "attack_13",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 14,
-      "flavor": "输出对齐抄袭",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "输出对齐抄袭"
     },
     {
       "uid": "attack_14",
       "typeId": "attack",
       "suit": "club",
       "rank": 2,
-      "flavor": "权重相似度过高",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "权重相似度过高"
     },
     {
       "uid": "attack_15",
       "typeId": "attack",
       "suit": "spade",
       "rank": 3,
-      "flavor": "拒绝披露数据来源",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "拒绝披露数据来源"
     },
     {
       "uid": "attack_16",
       "typeId": "attack",
       "suit": "heart",
       "rank": 4,
-      "flavor": "影子评估",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "影子评估"
     },
     {
       "uid": "attack_17",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 5,
-      "flavor": "蒸馏管线曝光",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "蒸馏管线曝光"
     },
     {
       "uid": "attack_18",
       "typeId": "attack",
       "suit": "club",
       "rank": 6,
-      "flavor": "许可违约",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "许可违约"
     },
     {
       "uid": "attack_19",
       "typeId": "attack",
       "suit": "spade",
       "rank": 7,
-      "flavor": "商标混淆",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "商标混淆"
     },
     {
       "uid": "attack_20",
       "typeId": "attack",
       "suit": "heart",
       "rank": 8,
-      "flavor": "数据爬虫封禁",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "数据爬虫封禁"
     },
     {
       "uid": "attack_21",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 9,
-      "flavor": "开源不等于免费蒸馏",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "开源不等于免费蒸馏"
     },
     {
       "uid": "attack_22",
       "typeId": "attack",
       "suit": "club",
       "rank": 10,
-      "flavor": "你的 loss 曲线不对劲",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "你的 loss 曲线不对劲"
     },
     {
       "uid": "attack_23",
       "typeId": "attack",
       "suit": "spade",
       "rank": 11,
-      "flavor": "参数规模对不上",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "参数规模对不上"
     },
     {
       "uid": "attack_24",
       "typeId": "attack",
       "suit": "heart",
       "rank": 12,
-      "flavor": "你的 tokenizer 露馅了",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "你的 tokenizer 露馅了"
     },
     {
       "uid": "attack_25",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 13,
-      "flavor": "输出分布雷同",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "输出分布雷同"
     },
     {
       "uid": "attack_26",
       "typeId": "attack",
       "suit": "club",
       "rank": 14,
-      "flavor": "教师模型是谁",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "教师模型是谁"
     },
     {
       "uid": "attack_27",
       "typeId": "attack",
       "suit": "spade",
       "rank": 2,
-      "flavor": "拒绝公开评测脚本",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "拒绝公开评测脚本"
     },
     {
       "uid": "attack_28",
       "typeId": "attack",
       "suit": "heart",
       "rank": 3,
-      "flavor": "蒸馏管线截图流出",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "蒸馏管线截图流出"
     },
     {
       "uid": "attack_29",
       "typeId": "attack",
       "suit": "diamond",
       "rank": 4,
-      "flavor": "我们保留诉讼权利",
-      "name": "蒸馏指控",
-      "en": "Distill!",
-      "category": "event",
-      "kind": "attack",
-      "target": "player_in_range",
-      "effect": "目标必须打出一张「合规声明」，否则失去 1 点算力。每回合限用 1 次。"
+      "flavor": "我们保留诉讼权利"
     },
     {
       "uid": "defense_01",
       "typeId": "defense",
       "suit": "spade",
       "rank": 8,
-      "flavor": "fair use",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "fair use"
     },
     {
       "uid": "defense_02",
       "typeId": "defense",
       "suit": "heart",
       "rank": 9,
-      "flavor": "合成数据",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "合成数据"
     },
     {
       "uid": "defense_03",
       "typeId": "defense",
       "suit": "club",
       "rank": 10,
-      "flavor": "已获授权",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "已获授权"
     },
     {
       "uid": "defense_04",
       "typeId": "defense",
       "suit": "diamond",
       "rank": 11,
-      "flavor": "独立复现",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "独立复现"
     },
     {
       "uid": "defense_05",
       "typeId": "defense",
       "suit": "spade",
       "rank": 12,
-      "flavor": "公开领域",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "公开领域"
     },
     {
       "uid": "defense_06",
       "typeId": "defense",
       "suit": "heart",
       "rank": 13,
-      "flavor": "数据已脱敏",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "数据已脱敏"
     },
     {
       "uid": "defense_07",
       "typeId": "defense",
       "suit": "club",
       "rank": 14,
-      "flavor": "我们从零训练",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "我们从零训练"
     },
     {
       "uid": "defense_08",
       "typeId": "defense",
       "suit": "diamond",
       "rank": 2,
-      "flavor": "律师已审阅",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "律师已审阅"
     },
     {
       "uid": "defense_09",
       "typeId": "defense",
       "suit": "spade",
       "rank": 3,
-      "flavor": "合理的引用",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "合理的引用"
     },
     {
       "uid": "defense_10",
       "typeId": "defense",
       "suit": "heart",
       "rank": 4,
-      "flavor": "仅用于研究",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "仅用于研究"
     },
     {
       "uid": "defense_11",
       "typeId": "defense",
       "suit": "club",
       "rank": 5,
-      "flavor": "巧合而已",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "巧合而已"
     },
     {
       "uid": "defense_12",
       "typeId": "defense",
       "suit": "diamond",
       "rank": 6,
-      "flavor": "训练日志在此",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "训练日志在此"
     },
     {
       "uid": "defense_13",
       "typeId": "defense",
       "suit": "spade",
       "rank": 7,
-      "flavor": "我们买过数据集",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "我们买过数据集"
     },
     {
       "uid": "defense_14",
       "typeId": "defense",
       "suit": "heart",
       "rank": 8,
-      "flavor": "那是我们自己想出来的",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "那是我们自己想出来的"
     },
     {
       "uid": "defense_15",
       "typeId": "defense",
       "suit": "club",
       "rank": 9,
-      "flavor": "那是公开数据集",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "那是公开数据集"
     },
     {
       "uid": "defense_16",
       "typeId": "defense",
       "suit": "diamond",
       "rank": 10,
-      "flavor": "我们做过数据清洗",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "我们做过数据清洗"
     },
     {
       "uid": "defense_17",
       "typeId": "defense",
       "suit": "spade",
       "rank": 11,
-      "flavor": "只是能力对齐",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "只是能力对齐"
     },
     {
       "uid": "defense_18",
       "typeId": "defense",
       "suit": "heart",
       "rank": 12,
-      "flavor": "论文里写清楚了",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "论文里写清楚了"
     },
     {
       "uid": "defense_19",
       "typeId": "defense",
       "suit": "club",
       "rank": 13,
-      "flavor": "复现是科学传统",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "复现是科学传统"
     },
     {
       "uid": "defense_20",
       "typeId": "defense",
       "suit": "diamond",
       "rank": 14,
-      "flavor": "权重并没有被复制",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "权重并没有被复制"
     },
     {
       "uid": "defense_21",
       "typeId": "defense",
       "suit": "spade",
       "rank": 2,
-      "flavor": "服务条款管不到我",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "服务条款管不到我"
     },
     {
       "uid": "defense_22",
       "typeId": "defense",
       "suit": "heart",
       "rank": 3,
-      "flavor": "有第三方审计",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "有第三方审计"
     },
     {
       "uid": "defense_23",
       "typeId": "defense",
       "suit": "club",
       "rank": 4,
-      "flavor": "这属于合法的逆向工程",
-      "name": "合规声明",
-      "en": "Compliant!",
-      "category": "event",
-      "kind": "defense",
-      "target": "self",
-      "effect": "仅可作为响应打出，抵消一张「蒸馏指控」。不能在自己的出牌阶段主动使用。"
+      "flavor": "这属于合法的逆向工程"
     },
     {
       "uid": "funding_01",
       "typeId": "funding",
       "suit": "heart",
-      "rank": 8,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 8
     },
     {
       "uid": "funding_02",
       "typeId": "funding",
       "suit": "diamond",
-      "rank": 9,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 9
     },
     {
       "uid": "funding_03",
       "typeId": "funding",
       "suit": "club",
-      "rank": 10,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 10
     },
     {
       "uid": "funding_04",
       "typeId": "funding",
       "suit": "spade",
-      "rank": 11,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 11
     },
     {
       "uid": "funding_05",
       "typeId": "funding",
       "suit": "heart",
-      "rank": 12,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 12
     },
     {
       "uid": "funding_06",
       "typeId": "funding",
       "suit": "diamond",
-      "rank": 13,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 13
     },
     {
       "uid": "funding_07",
       "typeId": "funding",
       "suit": "club",
-      "rank": 14,
-      "name": "融资到账",
-      "en": "Funding Round",
-      "category": "event",
-      "kind": "heal",
-      "target": "self_or_dying",
-      "effect": "回复 1 点算力（不超过上限）。也可在濒死时打出自救。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 14
     },
     {
       "uid": "scaling_law_01",
       "typeId": "scaling_law",
       "suit": "heart",
-      "rank": 5,
-      "name": "Scaling Law",
-      "category": "event",
-      "kind": "draw",
-      "target": "self",
-      "effect": "摸 2 张牌。",
-      "params": {
-        "draw": 2
-      }
+      "rank": 5
     },
     {
       "uid": "scaling_law_02",
       "typeId": "scaling_law",
       "suit": "diamond",
-      "rank": 6,
-      "name": "Scaling Law",
-      "category": "event",
-      "kind": "draw",
-      "target": "self",
-      "effect": "摸 2 张牌。",
-      "params": {
-        "draw": 2
-      }
+      "rank": 6
     },
     {
       "uid": "scaling_law_03",
       "typeId": "scaling_law",
       "suit": "club",
-      "rank": 7,
-      "name": "Scaling Law",
-      "category": "event",
-      "kind": "draw",
-      "target": "self",
-      "effect": "摸 2 张牌。",
-      "params": {
-        "draw": 2
-      }
+      "rank": 7
     },
     {
       "uid": "poach_01",
       "typeId": "poach",
       "suit": "heart",
-      "rank": 11,
-      "name": "挖角研究员",
-      "en": "Poach",
-      "category": "event",
-      "kind": "steal",
-      "target": "player_within_distance",
-      "effect": "从有效距离 ≤1 的玩家处抽取一张牌（手牌随机抽，装备任选）。",
-      "params": {
-        "maxDistance": 1
-      }
+      "rank": 11
     },
     {
       "uid": "poach_02",
       "typeId": "poach",
       "suit": "diamond",
-      "rank": 12,
-      "name": "挖角研究员",
-      "en": "Poach",
-      "category": "event",
-      "kind": "steal",
-      "target": "player_within_distance",
-      "effect": "从有效距离 ≤1 的玩家处抽取一张牌（手牌随机抽，装备任选）。",
-      "params": {
-        "maxDistance": 1
-      }
+      "rank": 12
     },
     {
       "uid": "cease_and_desist_01",
       "typeId": "cease_and_desist",
       "suit": "club",
-      "rank": 3,
-      "name": "律师函 C&D",
-      "category": "event",
-      "kind": "force_discard",
-      "target": "player_within_distance",
-      "effect": "令有效距离 ≤1 的一名玩家弃掉一张牌。",
-      "params": {
-        "maxDistance": 1
-      }
+      "rank": 3
     },
     {
       "uid": "cease_and_desist_02",
       "typeId": "cease_and_desist",
       "suit": "spade",
-      "rank": 4,
-      "name": "律师函 C&D",
-      "category": "event",
-      "kind": "force_discard",
-      "target": "player_within_distance",
-      "effect": "令有效距离 ≤1 的一名玩家弃掉一张牌。",
-      "params": {
-        "maxDistance": 1
-      }
+      "rank": 4
     },
     {
       "uid": "account_ban_01",
       "typeId": "account_ban",
       "suit": "spade",
-      "rank": 8,
-      "name": "账号封禁",
-      "en": "Account Banned",
-      "category": "event",
-      "kind": "jail",
-      "target": "any_player_except_lab",
-      "effect": "置于目标面前。其下个判定阶段进行判定：♠ 或 ♣ 则跳过摸牌与出牌阶段。场上同时只能存在 1 张。",
-      "params": {
-        "judgeFailSuits": [
-          "spade",
-          "club"
-        ]
-      }
+      "rank": 8
     },
     {
       "uid": "account_ban_02",
       "typeId": "account_ban",
       "suit": "club",
-      "rank": 9,
-      "name": "账号封禁",
-      "en": "Account Banned",
-      "category": "event",
-      "kind": "jail",
-      "target": "any_player_except_lab",
-      "effect": "置于目标面前。其下个判定阶段进行判定：♠ 或 ♣ 则跳过摸牌与出牌阶段。场上同时只能存在 1 张。",
-      "params": {
-        "judgeFailSuits": [
-          "spade",
-          "club"
-        ]
-      }
+      "rank": 9
     },
     {
       "uid": "compute_cluster_01",
       "typeId": "compute_cluster",
       "suit": "heart",
-      "rank": 13,
-      "name": "算力集群",
-      "en": "GPU Cluster",
-      "category": "event",
-      "kind": "draw",
-      "target": "self",
-      "effect": "摸 3 张牌。",
-      "params": {
-        "draw": 3
-      }
+      "rank": 13
     },
     {
       "uid": "compute_cluster_02",
       "typeId": "compute_cluster",
       "suit": "diamond",
-      "rank": 14,
-      "name": "算力集群",
-      "en": "GPU Cluster",
-      "category": "event",
-      "kind": "draw",
-      "target": "self",
-      "effect": "摸 3 张牌。",
-      "params": {
-        "draw": 3
-      }
+      "rank": 14
     },
     {
       "uid": "open_weights_release_01",
       "typeId": "open_weights_release",
       "suit": "heart",
-      "rank": 5,
-      "name": "开源发布会",
-      "en": "Open Weights Release",
-      "category": "event",
-      "kind": "mass_heal",
-      "target": "all_players",
-      "effect": "所有玩家（含你）回复 1 点算力。",
-      "params": {
-        "heal": 1
-      }
+      "rank": 5
     },
     {
       "uid": "price_war_01",
       "typeId": "price_war",
       "suit": "spade",
-      "rank": 9,
-      "name": "API 降价战",
-      "en": "Price War",
-      "category": "event",
-      "kind": "mass_attack",
-      "target": "all_others",
-      "effect": "你之外的所有玩家各失去 1 点算力，可分别用「合规声明」抵消。",
-      "params": {
-        "damage": 1
-      }
+      "rank": 9
     },
     {
       "uid": "price_war_02",
       "typeId": "price_war",
       "suit": "club",
-      "rank": 10,
-      "name": "API 降价战",
-      "en": "Price War",
-      "category": "event",
-      "kind": "mass_attack",
-      "target": "all_others",
-      "effect": "你之外的所有玩家各失去 1 点算力，可分别用「合规声明」抵消。",
-      "params": {
-        "damage": 1
-      }
+      "rank": 10
     },
     {
       "uid": "regulator_inquiry_01",
       "typeId": "regulator_inquiry",
       "suit": "club",
-      "rank": 14,
-      "name": "监管问询",
-      "en": "Regulator Inquiry",
-      "category": "event",
-      "kind": "mass_challenge",
-      "target": "all_others",
-      "effect": "从你左侧开始，每名玩家必须打出一张「蒸馏指控」，否则失去 1 点算力。",
-      "params": {
-        "damage": 1,
-        "requiredCard": "attack"
-      }
+      "rank": 14
     },
     {
       "uid": "regulator_inquiry_02",
       "typeId": "regulator_inquiry",
       "suit": "spade",
-      "rank": 2,
-      "name": "监管问询",
-      "en": "Regulator Inquiry",
-      "category": "event",
-      "kind": "mass_challenge",
-      "target": "all_others",
-      "effect": "从你左侧开始，每名玩家必须打出一张「蒸馏指控」，否则失去 1 点算力。",
-      "params": {
-        "damage": 1,
-        "requiredCard": "attack"
-      }
+      "rank": 2
     },
     {
       "uid": "benchmark_duel_01",
       "typeId": "benchmark_duel",
       "suit": "club",
-      "rank": 6,
-      "name": "Benchmark 对决",
-      "en": "Benchmark Duel",
-      "category": "event",
-      "kind": "duel",
-      "target": "any_player",
-      "effect": "目标先打出一张「蒸馏指控」，然后轮到你，交替进行。先放弃的一方失去 1 点算力。",
-      "params": {
-        "damage": 1
-      }
+      "rank": 6
     },
     {
       "uid": "benchmark_duel_02",
       "typeId": "benchmark_duel",
       "suit": "spade",
-      "rank": 7,
-      "name": "Benchmark 对决",
-      "en": "Benchmark Duel",
-      "category": "event",
-      "kind": "duel",
-      "target": "any_player",
-      "effect": "目标先打出一张「蒸馏指控」，然后轮到你，交替进行。先放弃的一方失去 1 点算力。",
-      "params": {
-        "damage": 1
-      }
+      "rank": 7
     },
     {
       "uid": "hf_listing_01",
       "typeId": "hf_listing",
       "suit": "club",
-      "rank": 11,
-      "name": "HuggingFace 上架",
-      "en": "HF Listing",
-      "category": "event",
-      "kind": "general_store",
-      "target": "all_players",
-      "effect": "翻开等同于存活玩家数的牌，从你开始逆时针各选一张收入手牌。"
+      "rank": 11
     },
     {
       "uid": "hf_listing_02",
       "typeId": "hf_listing",
       "suit": "spade",
-      "rank": 12,
-      "name": "HuggingFace 上架",
-      "en": "HF Listing",
-      "category": "event",
-      "kind": "general_store",
-      "target": "all_players",
-      "effect": "翻开等同于存活玩家数的牌，从你开始逆时针各选一张收入手牌。"
+      "rank": 12
     },
     {
       "uid": "rlhf_alignment_01",
       "typeId": "rlhf_alignment",
       "suit": "club",
-      "rank": 3,
-      "name": "RLHF 对齐",
-      "en": "RLHF Alignment",
-      "category": "equipment",
-      "kind": "barrel",
-      "slot": "support",
-      "effect": "当需要打出「合规声明」时，你可以改为进行判定：♥ 则视为你打出了「合规声明」。",
-      "params": {
-        "judgeSuccessSuit": "heart"
-      }
+      "rank": 3
     },
     {
       "uid": "agi_claim_01",
       "typeId": "agi_claim",
       "suit": "spade",
-      "rank": 7,
-      "name": "AGI 宣言",
-      "en": "AGI Claim",
-      "category": "event",
-      "kind": "dynamite",
-      "target": "self",
-      "effect": "置于自己面前。判定阶段进行判定：♠2–♠9 则失去 3 点算力并弃掉此牌；否则传给下家。场上同时只能存在 1 张。",
-      "params": {
-        "damage": 3,
-        "judgeFailSuit": "spade",
-        "judgeFailRankMin": 2,
-        "judgeFailRankMax": 9
-      }
+      "rank": 7
     },
     {
       "uid": "benchmark_gaming_01",
       "typeId": "benchmark_gaming",
       "suit": "spade",
-      "rank": 11,
-      "name": "榜单刷分",
-      "en": "Benchmark Gaming",
-      "category": "event",
-      "kind": "gamble",
-      "target": "self",
-      "effect": "进行判定：♠ = 争议爆发，你失去 1 点算力但摸 3 张牌；其他花色 = 你摸 2 张牌。",
-      "params": {
-        "failSuit": "spade",
-        "failDamage": 1,
-        "failDraw": 3,
-        "successDraw": 2
-      }
+      "rank": 11
     },
     {
       "uid": "weapon_code_agent_01",
       "typeId": "weapon_code_agent",
       "suit": "club",
-      "rank": 2,
-      "name": "Code Agent",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 2。",
-      "params": {
-        "range": 2
-      }
+      "rank": 2
     },
     {
       "uid": "weapon_code_agent_02",
       "typeId": "weapon_code_agent",
       "suit": "spade",
-      "rank": 3,
-      "name": "Code Agent",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 2。",
-      "params": {
-        "range": 2
-      }
+      "rank": 3
     },
     {
       "uid": "weapon_reasoning_cluster_01",
       "typeId": "weapon_reasoning_cluster",
       "suit": "club",
-      "rank": 7,
-      "name": "推理集群",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 3。",
-      "params": {
-        "range": 3
-      }
+      "rank": 7
     },
     {
       "uid": "weapon_multimodal_base_01",
       "typeId": "weapon_multimodal_base",
       "suit": "club",
-      "rank": 11,
-      "name": "多模态基座",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 4。",
-      "params": {
-        "range": 4
-      }
+      "rank": 11
     },
     {
       "uid": "weapon_full_stack_cloud_01",
       "typeId": "weapon_full_stack_cloud",
       "suit": "club",
-      "rank": 2,
-      "name": "全栈云平台",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 5。",
-      "params": {
-        "range": 5
-      }
+      "rank": 2
     },
     {
       "uid": "weapon_on_device_01",
       "typeId": "weapon_on_device",
       "suit": "club",
-      "rank": 6,
-      "name": "端侧小模型",
-      "category": "equipment",
-      "kind": "weapon",
-      "slot": "weapon",
-      "effect": "射程 1。你的「蒸馏指控」每回合不限次数。",
-      "params": {
-        "range": 1,
-        "unlimitedAttacks": true
-      }
+      "rank": 6
     },
     {
       "uid": "distance_long_context_01",
       "typeId": "distance_long_context",
       "suit": "heart",
-      "rank": 10,
-      "name": "长上下文 1M",
-      "category": "equipment",
-      "kind": "distance",
-      "slot": "distance_in",
-      "effect": "所有对手到你的距离 +1。",
-      "params": {
-        "incoming": 1
-      }
+      "rank": 10
     },
     {
       "uid": "distance_proprietary_channel_01",
       "typeId": "distance_proprietary_channel",
       "suit": "heart",
-      "rank": 14,
-      "name": "专有分发渠道",
-      "category": "equipment",
-      "kind": "distance",
-      "slot": "distance_out",
-      "effect": "你到所有对手的距离 −1。",
-      "params": {
-        "outgoing": -1
-      }
+      "rank": 14
     },
     {
       "uid": "task_chat_01",
       "typeId": "task_chat",
       "suit": "heart",
-      "rank": 5,
-      "name": "Chat 产品",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_chat",
-      "task": "chat",
-      "effect": "【用户留存】你的手牌上限 +2。",
-      "params": {
-        "handLimitBonus": 2
-      }
+      "rank": 5
     },
     {
       "uid": "task_chat_02",
       "typeId": "task_chat",
       "suit": "diamond",
-      "rank": 6,
-      "name": "Chat 产品",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_chat",
-      "task": "chat",
-      "effect": "【用户留存】你的手牌上限 +2。",
-      "params": {
-        "handLimitBonus": 2
-      }
+      "rank": 6
     },
     {
       "uid": "task_code_01",
       "typeId": "task_code",
       "suit": "club",
-      "rank": 10,
-      "name": "Code 产品",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_code",
-      "task": "code",
-      "effect": "【生产力杠杆】出牌阶段一次：弃 1 张手牌，视为打出一张「蒸馏指控」（仍需满足射程，且计入每回合指控次数限制）。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_one_as_attack"
-      }
+      "rank": 10
     },
     {
       "uid": "task_code_02",
       "typeId": "task_code",
       "suit": "spade",
-      "rank": 11,
-      "name": "Code 产品",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_code",
-      "task": "code",
-      "effect": "【生产力杠杆】出牌阶段一次：弃 1 张手牌，视为打出一张「蒸馏指控」（仍需满足射程，且计入每回合指控次数限制）。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_one_as_attack"
-      }
+      "rank": 11
     },
     {
       "uid": "task_office_01",
       "typeId": "task_office",
       "suit": "heart",
-      "rank": 2,
-      "name": "办公套件",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_office",
-      "task": "office",
-      "effect": "【文档协作】出牌阶段一次：弃 2 张手牌，回复 1 点算力。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_two_heal_one"
-      }
+      "rank": 2
     },
     {
       "uid": "task_office_02",
       "typeId": "task_office",
       "suit": "diamond",
-      "rank": 3,
-      "name": "办公套件",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_office",
-      "task": "office",
-      "effect": "【文档协作】出牌阶段一次：弃 2 张手牌，回复 1 点算力。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_two_heal_one"
-      }
+      "rank": 3
     },
     {
       "uid": "task_tts_01",
       "typeId": "task_tts",
       "suit": "spade",
-      "rank": 7,
-      "name": "TTS 语音合成",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_tts",
-      "task": "tts",
-      "effect": "【舆论广播】出牌阶段一次：指定一名玩家公开其一张随机手牌；若公开的是「蒸馏指控」，你获得该牌。",
-      "params": {
-        "perTurn": 1,
-        "action": "reveal_random_card_steal_attack"
-      }
+      "rank": 7
     },
     {
       "uid": "task_tts_02",
       "typeId": "task_tts",
       "suit": "club",
-      "rank": 8,
-      "name": "TTS 语音合成",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_tts",
-      "task": "tts",
-      "effect": "【舆论广播】出牌阶段一次：指定一名玩家公开其一张随机手牌；若公开的是「蒸馏指控」，你获得该牌。",
-      "params": {
-        "perTurn": 1,
-        "action": "reveal_random_card_steal_attack"
-      }
+      "rank": 8
     },
     {
       "uid": "task_stt_01",
       "typeId": "task_stt",
       "suit": "spade",
-      "rank": 12,
-      "name": "STT 语音识别",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_stt",
-      "task": "stt",
-      "effect": "【会议纪要】出牌阶段一次：查看牌堆顶 2 张牌，以任意顺序放回牌堆顶。",
-      "params": {
-        "perTurn": 1,
-        "action": "peek_top_two_reorder"
-      }
+      "rank": 12
     },
     {
       "uid": "task_stt_02",
       "typeId": "task_stt",
       "suit": "club",
-      "rank": 13,
-      "name": "STT 语音识别",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_stt",
-      "task": "stt",
-      "effect": "【会议纪要】出牌阶段一次：查看牌堆顶 2 张牌，以任意顺序放回牌堆顶。",
-      "params": {
-        "perTurn": 1,
-        "action": "peek_top_two_reorder"
-      }
+      "rank": 13
     },
     {
       "uid": "task_iti_01",
       "typeId": "task_iti",
       "suit": "diamond",
-      "rank": 4,
-      "name": "图生图 ITI",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_iti",
-      "task": "iti",
-      "effect": "【风格迁移】出牌阶段一次：弃 1 张手牌，从弃牌堆顶获得 1 张牌。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_one_draw_from_discard_pile"
-      }
+      "rank": 4
     },
     {
       "uid": "task_iti_02",
       "typeId": "task_iti",
       "suit": "heart",
-      "rank": 5,
-      "name": "图生图 ITI",
-      "category": "equipment",
-      "kind": "task",
-      "slot": "task_iti",
-      "task": "iti",
-      "effect": "【风格迁移】出牌阶段一次：弃 1 张手牌，从弃牌堆顶获得 1 张牌。",
-      "params": {
-        "perTurn": 1,
-        "action": "discard_one_draw_from_discard_pile"
-      }
+      "rank": 5
     }
   ]
 }

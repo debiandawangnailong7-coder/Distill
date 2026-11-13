@@ -31,9 +31,15 @@ export function buildAssetIndex(manifest) {
   };
 
   const charDefault = url(byKey.get('generic:char_default'));
+  const portraitOf = (id) => {
+    const e = byKey.get(`character:${id}`);
+    const path = e?.portrait && e.status === 'ready' ? e.portrait : e?.portraitFallback ?? e?.fallback;
+    return path ? new URL(path, document.baseURI).href : charDefault;
+  };
   return {
     raw: manifest,
     character: (id) => url(byKey.get(`character:${id}`)) ?? charDefault,
+    portrait: portraitOf,
     role: (id) => url(byKey.get(`generic:role_${id}`)),
     card: (card) => url(byKey.get(`card:${card.typeId}`)) ?? url(byKey.get(`generic:${kindId(card)}`)),
     kind: (card) => url(byKey.get(`generic:${kindId(card)}`)),

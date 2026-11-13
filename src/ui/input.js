@@ -1,4 +1,5 @@
 import { rules } from '../engine/index.js';
+import { createCharacterCard, skillDetailText } from './characterCard.js';
 import {
   actionsForCard,
   targetedActions,
@@ -17,7 +18,7 @@ import {
  * 指针/键盘输入层。
  * 桌面端优先拖拽；点击选牌 + 点座位是等价路径；键盘 1–9 / 方向键 / Enter / Esc。
  */
-export function createInput({ motion, renderer, hints, getState, getUi, onIntent, onFastToggle }) {
+export function createInput({ assets, motion, renderer, hints, getState, getUi, onIntent, onFastToggle }) {
   const handHost = document.getElementById('hand');
   const seatHost = document.getElementById('seats');
   const table = document.getElementById('table');
@@ -139,7 +140,7 @@ export function createInput({ motion, renderer, hints, getState, getUi, onIntent
     const range = rules.rangeOf(me);
     const bits = [`<b>${actionLabel(action)}</b>`, `距离 ${dist} / 射程 ${range}`];
     if (action.asAttack || action.typeId === 'attack') {
-      const need = target.character?.mechanic === 'attack_needs_two_defenses' ? 2 : 1;
+      const need = rules.hasMechanic(target, 'attack_needs_two_defenses') ? 2 : 1;
       bits.push(need === 2 ? '目标需要 2 张「合规声明」' : '命中后目标失去 1 点算力');
     }
     if (uid && hasIntentChoice(ui().pending.actions, uid, targetIndex)) {
@@ -199,10 +200,10 @@ export function createInput({ motion, renderer, hints, getState, getUi, onIntent
     u.targeting = targeted.length ? { actions: targeted, label: cardName(uid), source: 'card' } : null;
     renderer.render(state(), u);
     hints.brief(targeted.length
-      ? `已选「${cardName(uid)}」— 拖到高亮座位，或点击座位。Esc 取消。`
-      : `已选「${cardName(uid)}」— 在右侧选择如何使用，或拖到桌面中央。`);
+      ? `「${cardName(uid)}」— 拖到高亮座位，或点击座位`
+      : `「${cardName(uid)}」— 在右侧选择用法，或拖到桌面中央`);
     if (targeted.length) {
-      hints.coach('select', '手牌已经选中。把牌拖到发光的座位即可指定目标；也可以直接点击座位。', renderer.handEl(uid));
+      hints.coach('select', '把牌拖到发光的座位即可指定目标；也可以直接点击座位。', renderer.handEl(uid));
     }
   }
 
@@ -370,11 +371,17 @@ export function createInput({ motion, renderer, hints, getState, getUi, onIntent
     if (!u.selectedCardUid && !u.targeting) {
       const target = state()?.players?.[index];
       if (target && index !== 0) {
-        hints.show(
-          `<b>${target.name}</b> · ${target.character.name}<br>算力 ${Math.max(0, target.compute)} · 手牌 ${target.hand.length}<br>${target.alive ? '存活' : '已出局'}`,
-          seatEl,
-          { force: true }
-        );
+        // 局内角色预览：与开场角色墙共用同一张角色卡（换用 Q 版美术轴），
+        // 点空闲座位即可查看对手的角色与技能。
+        const card = createCharacterCard(target.character, { assets, art: 'avatar', size: 'sm' });
+        const detail = document.createElement('div');
+        detail.className = 'charCardDetail';
+        detail.textContent = skillDetailText(target.character);
+        const wrap = document.createElement('div');
+        wrap.className = 'seatPreview';
+        wrap.appendChild(card);
+        wrap.appendChild(detail);
+        hints.show(wrap.innerHTML, seatEl, { force: true });
       }
       return;
     }

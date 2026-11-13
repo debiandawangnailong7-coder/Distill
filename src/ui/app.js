@@ -6,6 +6,7 @@ import { createHints } from './hints.js';
 import { createMotion } from './motion.js';
 import { createRenderer } from './render.js';
 import { createInput } from './input.js';
+import { showIntro, showGameOver, introSeen } from './screens.js';
 
 const PARAMS = new URLSearchParams(location.search);
 const HUMAN = 0;
@@ -39,6 +40,7 @@ let game = null;
 let ais = [];
 let memories = [];
 let assets = null;
+let data = null; // loadData() 的结果，boot 里赋值，bootGame 与设置里的「角色介绍」共用
 let hints = null;
 let motion = null;
 let renderer = null;
@@ -140,8 +142,8 @@ function humanDecide(ctx) {
       if (ctx.request.purpose === 'defense_response') renderer.showResponse(ctx.request, resolvePending);
       else renderer.showModal(ctx.request, resolvePending);
     } else {
-      hints.brief('轮到你出牌 — 拖动一张手牌到目标座位，或点击手牌查看行动。');
-      hints.coach('turn', '拖动一张手牌到发光的座位就能指定目标；点击手牌也可以选中，再用方向键或点击座位。', $('hand'));
+      hints.brief('轮到你 — 拖动手牌到目标座位，或点击手牌。');
+      hints.coach('turn', '把牌拖到发光的座位即可指定目标；也可以先点击手牌再点座位。', $('hand'));
     }
   });
 }
@@ -309,7 +311,6 @@ async function bootGame() {
   booted = true;
   renderer.hideOverlay();
   try {
-    const data = await loadData();
     memories = Array.from({ length: PLAYER_COUNT }, () => new TableMemory(PLAYER_COUNT));
     ais = memories.map((memory, i) =>
       createAi({ memory, roles: data.roles, playerCount: PLAYER_COUNT, rand: mulberry32(SEED + i) })
@@ -324,10 +325,10 @@ async function bootGame() {
     });
     console.info(`[DISTILL] seed=${SEED} players=${PLAYER_COUNT}`);
     renderer.render(game.state, ui);
-    hints.brief('对局开始 — 拖动一张手牌到目标座位，或点击手牌查看行动。');
+    hints.brief('对局开始 — 拖动手牌到目标座位，或点击手牌。');
     await game.run();
     await motion.drain();
-    renderer.showGameOver(game.state, HUMAN);
+    showGameOver({ assets, state: game.state, humanIndex: HUMAN });
   } catch (err) {
     console.error(err);
     booted = false;
@@ -396,6 +397,17 @@ function bindChrome() {
     syncFastUI();
   });
 
+  // 重新打开开场角色介绍：对局已在进行时按钮显示「继续对局」，不重新建局。
+  $('introBtn').addEventListener('click', () => {
+    showIntro({
+      assets,
+      characters: data.characters.characters,
+      roles: data.roles,
+      onStart: bootGame,
+      resume: booted,
+    });
+  });
+
   syncFastUI();
   syncModeUI();
 }
@@ -409,6 +421,7 @@ function bindChrome() {
   $('overlayBody').innerHTML = '<p>正在读取牌堆、角色与素材清单…</p>';
 
   assets = await loadAssets();
+  data = await loadData(); // 开场角色墙、建局与设置里的「角色介绍」共用同一份数据
 
   hints = createHints({ mode: PARAMS.get('mode') || 'standard' });
   if (PARAMS.get('mode')) hints.setMode(PARAMS.get('mode'));
@@ -424,6 +437,7 @@ function bindChrome() {
     onCancel: () => input?.cancel(),
   });
   input = createInput({
+    assets,
     motion,
     renderer,
     hints,
@@ -433,7 +447,11 @@ function bindChrome() {
     onFastToggle: toggleFast,
   });
   bindChrome();
-  renderer.showIntro({ onStart: bootGame });
-
-  if (PARAMS.get('auto') === '1') bootGame();
+  // 已看过开场介绍（localStorage 记忆）则直接进牌桌；设置里的「角色介绍」可随时重新打开。
+  if (introSeen() && PARAMS.get('auto') !== '1') {
+    bootGame();
+  } else {
+    showIntro({ assets, characters: data.characters.characters, roles: data.roles, onStart: bootGame });
+    if (PARAMS.get('auto') === '1') bootGame(); // 调试参数始终直接开局（自动隐藏开场页）
+  }
 })();

@@ -4,25 +4,20 @@
  * 参数：?mode=targeting|actions|modal|gameover|intro
  */
 import { createRenderer } from './render.js';
+import { buildAssetIndex } from './assets.js';
+import { showIntro, showGameOver } from './screens.js';
 
 const root = document.getElementById('app');
 const mode = new URLSearchParams(location.search).get('mode') ?? 'targeting';
 
-const url = (path) => new URL(path, document.baseURI).href;
-const A = {
-  character: (id) => {
-    const ready = ['deepseek_r1', 'claude_3_5_sonnet', 'gpt_4o', 'kimi_k2', 'doubao_seed'];
-    return url(ready.includes(id) ? `../../assets/characters/${id}.svg` : '../../assets/generic/char_default.svg');
-  },
-  role: (id) => url(`../../assets/generic/role_${id}.png`),
-  card: (card) => {
-    const name = card.category === 'equipment' ? 'kind_equip' : card.kind === 'attack' ? 'kind_attack' : card.kind === 'defense' ? 'kind_defense' : 'kind_action';
-    return url(`../../assets/generic/${name}.png`);
-  },
-  cardBack: url('../../assets/generic/card_back.png'),
-  title: url('../../assets/generic/title.png'),
-};
-const assets = { ...A, raw: null };
+// 与正式入口一致：预览也走 manifest 索引，不再维护一份硬编码的素材清单。
+let assets = null;
+try {
+  const res = await fetch(new URL('../../assets/manifest.json', document.baseURI));
+  if (res.ok) assets = buildAssetIndex(await res.json());
+} catch {
+  /* 缺清单时退回 null，渲染层自动使用文字占位 */
+}
 
 let seq = 0;
 function card(typeId, name, kind, extra = {}) {
@@ -52,27 +47,27 @@ const discardTop = card('regulator_inquiry', '监管问询', 'mass_challenge', {
 
 const players = [
   {
-    index: 0, name: '你', character: { id: 'deepseek_r1', name: 'DeepSeek-R1', compute: 4, skill: { name: '开源思维链' }, effect: '摸牌阶段的第 2 张牌翻开展示，若为 ♦ 则额外摸 1 张', mechanic: 'draw_reveal_diamond_bonus' },
+    index: 0, name: '你', character: { id: 'deepseek_r1', name: 'DeepSeek-R1', compute: 4, skills: [{ name: '开源思维链', effect: '摸牌阶段的第 2 张牌翻开展示，若为 ♦ 则额外摸 1 张', mechanic: 'draw_reveal_diamond_bonus' }] },
     role: { id: 'frontier_lab', computeBonus: 1 }, compute: 5, hand: [attack, defense, funding, weapon, task, chat],
     equipment: { weapon, task_chat: chat }, jail: null, dynamite: null, alive: true, revealed: true,
   },
   {
-    index: 1, name: 'dario', character: { id: 'claude_3_5_sonnet', name: 'Claude 3.5 Sonnet', compute: 4, skill: { name: 'Constitutional AI' }, effect: '需要打出「合规声明」时可改为判定，♥ 视为声明', mechanic: 'judge_heart_as_defense' },
+    index: 1, name: 'dario', character: { id: 'claude_3_5_sonnet', name: 'Claude 3.5 Sonnet', compute: 4, skills: [{ name: 'Constitutional AI', effect: '需要打出「合规声明」时可改为判定，♥ 视为声明', mechanic: 'judge_heart_as_defense' }] },
     role: { id: 'distiller', computeBonus: 0 }, compute: 4, hand: [defense, defense, attack],
     equipment: {}, jail: null, dynamite: null, alive: true, revealed: false,
   },
   {
-    index: 2, name: 'sam A.', character: { id: 'gpt_4o', name: 'GPT-4o', compute: 4, skill: { name: '全模态' }, effect: '任意手牌可当作「蒸馏指控」使用', mechanic: 'any_card_as_attack' },
+    index: 2, name: 'sam A.', character: { id: 'gpt_4o', name: 'GPT-4o', compute: 4, skills: [{ name: '全模态', effect: '任意手牌可当作「蒸馏指控」使用', mechanic: 'any_card_as_attack' }] },
     role: { id: 'lone_wolf', computeBonus: 0 }, compute: 2, hand: [attack, defense, funding, defense],
     equipment: { weapon: card('weapon_reasoning_cluster', '推理集群', 'weapon', { category: 'equipment', params: { range: 3 } }) }, jail: null, dynamite: null, alive: true, revealed: false,
   },
   {
-    index: 3, name: 'tibo', character: { id: 'kimi_k2', name: 'Kimi K2', compute: 4, skill: { name: '长文本速读' }, effect: '摸 3 张后放回 2 张', mechanic: 'draw_three_return_two' },
+    index: 3, name: 'tibo', character: { id: 'kimi_k2', name: 'Kimi K2', compute: 4, skills: [{ name: '长文本速读', effect: '摸 3 张后放回 2 张', mechanic: 'draw_three_return_two' }] },
     role: { id: 'licensed_partner', computeBonus: 0 }, compute: 3, hand: [defense, funding],
     equipment: { task_stt: stt }, jail: null, dynamite: null, alive: true, revealed: false,
   },
   {
-    index: 4, name: '梁文峰', character: { id: 'doubao_seed', name: '豆包 Seed', compute: 6, skill: { name: '国民应用' }, effect: '每名其他角色回合结束后进行一次无判定回合；每回合结束损失 1 点算力', mechanic: 'extra_turn_after_each_other_turn' },
+    index: 4, name: '梁文峰', character: { id: 'doubao_seed', name: '豆包 Seed', compute: 6, skills: [{ name: '国民应用', effect: '每名其他角色回合结束后进行一次无判定回合；每回合结束损失 1 点算力', mechanic: 'extra_turn_after_each_other_turn' }] },
     role: { id: 'distiller', computeBonus: 0 }, compute: 6, hand: [attack, defense, attack, funding, defense],
     equipment: {}, jail: null, dynamite: null, alive: true, revealed: false,
   },
@@ -153,8 +148,20 @@ if (mode === 'modal') {
 if (mode === 'gameover') {
   state.gameOver = true;
   state.winner = { winner: 'frontier_lab', reason: '所有蒸馏者与开源独狼均已出局' };
-  renderer.showGameOver(state, 0);
+  showGameOver({ assets, state, humanIndex: 0 });
 }
 if (mode === 'intro') {
-  renderer.showIntro({ onStart: () => {} });
+  showIntro({
+    assets,
+    characters: players.map((p) => p.character),
+    roles: {
+      roles: [
+        { id: 'frontier_lab', name: '前沿实验室', objective: '清除所有蒸馏者与独狼' },
+        { id: 'licensed_partner', name: '授权被许可方', objective: '保护前沿实验室' },
+        { id: 'distiller', name: '未授权蒸馏者', objective: '让前沿实验室出局' },
+        { id: 'lone_wolf', name: '开源独狼', objective: '成为唯一存活者' },
+      ],
+    },
+    onStart: () => {},
+  });
 }

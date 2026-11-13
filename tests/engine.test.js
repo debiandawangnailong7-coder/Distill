@@ -16,7 +16,7 @@ function playGame(seed, playerCount = 5) {
   return game.run().then((state) => ({ game, state }));
 }
 
-test('牌堆规模与 roles.json 声明一致，且每张牌都能查到牌型定义', () => {
+test('牌堆规模与 roles.json 声明一致，每张牌都是瘦卡且能查到牌型定义', () => {
   assert.equal(data.deck.cards.length, data.roles.rules.standardDeckSize);
   assert.equal(data.deck.totalCards, data.deck.cards.length);
   for (const c of data.deck.cards) {
@@ -24,13 +24,25 @@ test('牌堆规模与 roles.json 声明一致，且每张牌都能查到牌型�
       data.cardTypes.cardTypes.some((t) => t.id === c.typeId),
       `${c.uid} 的 typeId ${c.typeId} 在 cardTypes.json 中不存在`
     );
-    assert.ok(c.kind && c.name, `${c.uid} 缺少内联的牌型字段`);
+    // deck.json 不再内联牌型定义：同一份定义只在 cardTypes.json 保存一次
+    assert.ok(!('kind' in c) && !('name' in c) && !('params' in c), `${c.uid} 重复内联了牌型字段`);
+    assert.ok(c.suit && Number.isInteger(c.rank), `${c.uid} 缺少花色点数`);
   }
+});
+
+test('建局后牌堆中的卡牌已按牌型注册表水合，运行时自描述', () => {
+  const game = createGame({ ...data, playerCount: 5, seed: 1, decide: makeRandomDecider() });
+  for (const card of game.state.drawPile) {
+    assert.ok(card.kind && card.name, `${card.uid} 建局后仍缺少牌型字段`);
+  }
+  const weapon = game.state.drawPile.find((c) => c.typeId === 'weapon_code_agent');
+  if (weapon) assert.equal(weapon.params.range, 2, '水合后可直接读取 params');
 });
 
 test('牌堆攻防密度接近 BANG! 原版，避免攻击无法被回应', () => {
   const total = data.deck.cards.length;
-  const count = (kind) => data.deck.cards.filter((c) => c.kind === kind).length;
+  const kindOf = (c) => data.cardTypes.cardTypes.find((t) => t.id === c.typeId)?.kind;
+  const count = (kind) => data.deck.cards.filter((c) => kindOf(c) === kind).length;
   const attackRate = count('attack') / total;
   const defenseRate = count('defense') / total;
   // BANG! 原版为 Bang 48% / Missed 23%。本作牌型更多所以密度更低，

@@ -1,0 +1,144 @@
+{
+  "version": "2026-11-10",
+  "model_hint": "qwen-image (text->image) / qwen-image-edit (图生图，一次只改一件事)",
+  "prompt_order": "质量词 -> 画风 -> 角色锚点 -> 景别/动作 -> 配色与背景。风格与角色锚点任何一条被截断都会认不出人。",
+  "pairing_rule": "动漫组四条共用同一段 style_lead；豆包组共用同一段 hand_drawn_lead。同一组内只换角色锚点与动作段。",
+  "cleaning": "生成时先出 deepseek_r1 的 standee 作为定稿基准，其余角色对齐它的线宽、眼睛画法与光影强度，再出 Q 版和 gaming。",
+  "groups": {
+    "anime": {
+      "members": ["deepseek_r1", "claude_3_5_sonnet", "gpt_4o", "kimi_k2"],
+      "style_lead": "anime key visual, clean cel shading, soft rim light, crisp lineart, 2D illustration, high detail",
+      "negative": "photorealistic, 3d render, realistic skin, blurry, lowres, extra fingers, deformed hands, text, watermark, signature, multiple characters, cropped head, busy background"
+    },
+    "hand_drawn": {
+      "members": ["doubao_seed"],
+      "note": "豆包阵营与动漫组在媒介上就分开：不做赛璐璐、不做高光、不做长睫毛，一眼可辨。",
+      "negative": "anime, cel shading, glossy highlights, long eyelashes, photorealistic, 3d render, text, watermark, multiple characters, busy background"
+    }
+  },
+  "characters": [
+    {
+      "id": "deepseek_r1",
+      "name": "DeepSeek-R1",
+      "group": "anime",
+      "canon": "社区蓝发鲸鱼娘：深蓝长发、耳侧鳍状发束、蓝色女仆风裙装。本作额外保留圆框眼镜作为自己的标志。",
+      "anchors": ["深蓝长发", "耳侧鳍状发束", "圆框眼镜", "蓝白裙装 + 白围裙", "鲸尾"],
+      "shots": {
+        "standee": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, crisp lineart, high detail, 1girl, long navy-blue wavy hair with fin-like side locks, round glasses, pale blue eyes, blue and white maid-style dress with white apron, small whale tail behind, full body standing, hands loosely clasped, front view, plain cream background",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，清晰线稿，高细节，一名少女，深蓝色长卷发、耳侧鳍状发束，圆框眼镜，浅蓝眼，蓝白女仆风裙装加白围裙，身后小鲸尾，全身站姿，双手自然交叠，正面，米白纯色背景"
+        },
+        "chibi": {
+          "size": "1024x1024",
+          "en": "anime key visual, clean cel shading, crisp lineart, high detail, chibi, 3 heads tall, 1girl, long navy-blue hair with fin-like side locks, round glasses, pale blue eyes, blue and white dress with white apron, tiny whale tail, full body, waving one hand, sticker style, thick clean outline, white background",
+          "zh": "动漫主视觉，干净赛璐璐，清晰线稿，高细节，Q 版，三头身，一名少女，深蓝长发带鳍状发束，圆框眼镜，浅蓝眼，蓝白裙装加白围裙，小鲸尾，全身，单手挥手，贴纸风，粗净描边，白底"
+        },
+        "gaming": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, high detail, 1girl, long navy-blue hair with fin-like side locks, round glasses, pale blue eyes, blue and white dress with white apron, whale tail, leaning over a round wooden table, sliding a playing card forward with one hand, other hand raised, focused expression, warm dim tavern light, three-quarter view",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，高细节，一名少女，深蓝长发带鳍状发束，圆框眼镜，浅蓝眼，蓝白裙装加白围裙，鲸尾，俯身在圆木桌前，单手把一张扑克向前推，另一手抬起，神情专注，酒馆暖暗光，四分之三侧身"
+        }
+      }
+    },
+    {
+      "id": "claude_3_5_sonnet",
+      "name": "Claude 3.5 Sonnet",
+      "group": "anime",
+      "canon": "社区「Claude 大小姐」：橙红长卷发、黑白礼裙、黑蝴蝶结、抱书。本作保留抱书这一条最稳定的识别点。",
+      "anchors": ["橙红长卷发", "琥珀色眼睛", "黑白礼裙", "领口黑蝴蝶结", "抱一本厚书"],
+      "shots": {
+        "standee": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, crisp lineart, high detail, 1girl, long wavy copper-orange hair, amber eyes, black and white ornate dress with gold trim, black ribbon bow at the collar, holding a thick hardcover book against her chest, full body standing, front view, plain ivory background",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，清晰线稿，高细节，一名少女，橙红色长卷发，琥珀色眼睛，黑白镶金礼裙，领口黑蝴蝶结，抱一本厚硬皮书在胸前，全身站姿，正面，象牙白纯色背景"
+        },
+        "chibi": {
+          "size": "1024x1024",
+          "en": "anime key visual, clean cel shading, crisp lineart, high detail, chibi, 3 heads tall, 1girl, long wavy copper-orange hair, amber eyes, black and white dress, black ribbon bow at collar, hugging a thick book, full body, sticker style, thick clean outline, white background",
+          "zh": "动漫主视觉，干净赛璐璐，清晰线稿，高细节，Q 版，三头身，一名少女，橙红长卷发，琥珀眼，黑白礼裙，领口黑蝴蝶结，抱着厚书，全身，贴纸风，粗净描边，白底"
+        },
+        "gaming": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, high detail, 1girl, long wavy copper-orange hair, amber eyes, black and white ornate dress, black ribbon bow, shuffling a small stack of playing cards, book tucked under her other arm, calm knowing smile, seated at a round table, three-quarter view",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，高细节，一名少女，橙红长卷发，琥珀眼，黑白镶金礼裙，黑蝴蝶结，双手洗一小叠扑克，另一臂夹着书，从容的微笑，坐在圆桌前，四分之三侧身"
+        }
+      }
+    },
+    {
+      "id": "gpt_4o",
+      "name": "GPT-4o",
+      "group": "anime",
+      "canon": "社区 GPT 娘：银白长发、白色羽翼、白蓝裙装、天使感。仓库现稿的龙角龙尾不在社区设定里，以羽翼替换。",
+      "anchors": ["银白长发", "白色羽翼", "白蓝层叠裙装", "浅金色眼睛"],
+      "shots": {
+        "standee": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, crisp lineart, high detail, 1girl, long straight silver-white hair, pale gold eyes, white feathered wings folded behind her, white and sky-blue layered dress, full body standing, one hand open in welcome, front view, plain pale grey background",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，清晰线稿，高细节，一名少女，银白色长直发，浅金色眼睛，身后收拢的白色羽翼，白与天蓝的层叠裙装，全身站姿，单手摊开作邀请状，正面，浅灰纯色背景"
+        },
+        "chibi": {
+          "size": "1024x1024",
+          "en": "anime key visual, clean cel shading, crisp lineart, high detail, chibi, 3 heads tall, 1girl, long straight silver-white hair, pale gold eyes, small white feathered wings, white and sky-blue dress, full body, both arms out, sticker style, thick clean outline, white background",
+          "zh": "动漫主视觉，干净赛璐璐，清晰线稿，高细节，Q 版，三头身，一名少女，银白长直发，浅金眼，小小白羽翼，白蓝裙装，全身，双臂张开，贴纸风，粗净描边，白底"
+        },
+        "gaming": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, high detail, 1girl, long straight silver-white hair, pale gold eyes, white feathered wings half-spread, white and sky-blue dress, floating a small orb of light above a round table with one hand, cards spread on the table, serene expression, three-quarter view",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，高细节，一名少女，银白长直发，浅金眼，白色羽翼半张，白蓝裙装，单手在圆桌上方托起一小团光，桌面散着扑克，神情平静，四分之三侧身"
+        }
+      }
+    },
+    {
+      "id": "kimi_k2",
+      "name": "Kimi K2",
+      "group": "anime",
+      "canon": "社区 Kimi 娘：银白长卷发、蓝紫眼、白蓝多层裙 + 钢琴键纹、深色束腰。仓库现稿的姬发式深蓝裙认不出人，按这条改。",
+      "anchors": ["银白长卷发", "蓝紫色眼睛", "白蓝多层裙", "裙摆钢琴键纹", "月牙发饰"],
+      "shots": {
+        "standee": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, crisp lineart, high detail, 1girl, long silver-white wavy hair, blue-violet eyes, white and sky-blue layered dress with navy corset sash, piano-key pattern along the hem, crescent-moon hairpin, full body standing, front view, plain pale blue background",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，清晰线稿，高细节，一名少女，银白色长卷发，蓝紫色眼睛，白与天蓝的层叠裙装配深蓝束腰，裙摆有钢琴键纹，月牙发饰，全身站姿，正面，浅蓝纯色背景"
+        },
+        "chibi": {
+          "size": "1024x1024",
+          "en": "anime key visual, clean cel shading, crisp lineart, high detail, chibi, 3 heads tall, 1girl, long silver-white wavy hair, blue-violet eyes, white and sky-blue dress, piano-key trim on the skirt, crescent-moon hairpin, full body, holding a book, sticker style, thick clean outline, white background",
+          "zh": "动漫主视觉，干净赛璐璐，清晰线稿，高细节，Q 版，三头身，一名少女，银白长卷发，蓝紫眼，白蓝裙装，裙边钢琴键，月牙发饰，全身，捧着书，贴纸风，粗净描边，白底"
+        },
+        "gaming": {
+          "size": "896x1152",
+          "en": "anime key visual, clean cel shading, soft rim light, high detail, 1girl, long silver-white wavy hair, blue-violet eyes, white and sky-blue dress with piano-key hem, fanning out three playing cards in one hand, pages flickering past her shoulder, absorbed expression, three-quarter view",
+          "zh": "动漫主视觉，干净赛璐璐，柔和轮廓光，高细节，一名少女，银白长卷发，蓝紫眼，白蓝裙装、裙摆钢琴键，单手把三张扑克展开成扇形，翻飞的书页从肩后掠过，神情专注，四分之三侧身"
+        }
+      }
+    },
+    {
+      "id": "doubao_seed",
+      "name": "豆包 Seed",
+      "group": "hand_drawn",
+      "canon": "豆包 App 头像：深棕齐颈短发 + 红围巾 + 浅蓝圆底。不采用任何真人化的「豆姐」设定；本作把它做成豆形团子小人，仅保留短发与围巾两项可核实的锚点。",
+      "anchors": ["豆形圆身", "深棕齐颈短发", "红围巾", "浅蓝圆底"],
+      "shots": {
+        "doodle": {
+          "size": "1024x1024",
+          "media": "简笔画",
+          "en": "children's simple line doodle, black ballpoint outline, white paper, one small round bean-shaped character, dark brown neck-length bob, red scarf, dot eyes, tiny hands, standing in the middle of a light-blue circle, full body, flat colors, naive drawing",
+          "zh": "儿童简笔画，黑色圆珠笔描边，白纸，一个小小的豆形圆身小人，深棕齐颈短发，红围巾，点点眼，小手，站在浅蓝色圆形里，全身，平涂，稚拙笔触"
+        },
+        "oil_pastel": {
+          "size": "1024x1024",
+          "media": "油画棒",
+          "en": "oil pastel drawing on textured paper, thick waxy strokes, slightly smudged, one small round bean-shaped character, dark brown neck-length bob, red scarf, dot eyes, standing inside a light-blue circle, full body, naive childlike style",
+          "zh": "油画棒画在粗纹纸上，厚重油蜡笔触，略有涂抹，一个小小的豆形圆身小人，深棕齐颈短发，红围巾，点点眼，站在浅蓝色圆形中，全身，稚拙童趣"
+        },
+        "colored_pencil": {
+          "size": "1024x1024",
+          "media": "彩铅",
+          "en": "colored pencil sketch, visible pencil hatching, paper grain, one small round bean-shaped character, dark brown neck-length bob, red scarf, dot eyes, standing inside a light-blue circle, full body, soft hand-colored look, childlike",
+          "zh": "彩铅速写，可见铅笔排线，纸纹，一个小小的豆形圆身小人，深棕齐颈短发，红围巾，点点眼，站在浅蓝色圆形中，全身，柔和手涂感，童趣"
+        }
+      }
+    }
+  ]
+}

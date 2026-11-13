@@ -15,19 +15,14 @@ const errors = [];
 // 点数用全局游标轮转，再按牌型序号做偏移。若每个牌型都从 2 起算，低点数会大量堆积
 // （22 张指控 + 14 张声明全挤在 2/3），「AGI 宣言」的 ♠2–♠9 判定就会严重超频。
 //
-// 每张牌内联完整的牌型定义，使卡牌自描述：引擎的纯规则模块（distance/handLimit/range）
-// 无需依赖 cardTypes 注册表就能直接读取 params，浏览器也只需 fetch 一个 deck.json。
-const INLINE_FIELDS = ['name', 'en', 'category', 'kind', 'slot', 'task', 'target', 'effect', 'params'];
-
+// deck.json 只保存每张牌的独立事实（uid / 花色 / 点数 / flavor），牌型定义统一存放在
+// cardTypes.json，由引擎在建局时按 typeId 水合——同一份数据不重复保存两处。
 source.cardTypes.forEach((type, typeIndex) => {
   const suits = type.suits ?? SUITS;
   if (!suits.length) errors.push(`${type.id}: suits 为空`);
   if (type.flavors && type.flavors.length < type.count) {
     errors.push(`${type.id}: flavors 只有 ${type.flavors.length} 条，少于 count ${type.count}`);
   }
-
-  const shared = {};
-  for (const f of INLINE_FIELDS) if (type[f] !== undefined) shared[f] = type[f];
 
   for (let i = 0; i < type.count; i++) {
     cards.push({
@@ -36,7 +31,6 @@ source.cardTypes.forEach((type, typeIndex) => {
       suit: suits[i % suits.length],
       rank: MIN_RANK + ((cards.length + typeIndex * 3) % RANK_SPAN),
       ...(type.flavors ? { flavor: type.flavors[i] } : {}),
-      ...structuredClone(shared),
     });
   }
 });
@@ -70,7 +64,7 @@ if (boomRate < 0.12 || boomRate > 0.2) {
 }
 
 const deck = {
-  version: 1,
+  version: 2,
   generatedFrom: 'data/cardTypes.json',
   generator: 'scripts/build-deck.mjs',
   totalCards: cards.length,

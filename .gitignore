@@ -4,6 +4,12 @@ dist/
 # 图片生成的原始输出，入库素材需先挑进 assets/
 vibe_images/
 
+# 美术生成过程的工作目录（140MB+）：正式存档只保留 art/portraits 与 prompts/README
+art/renders/
+
+# 本地 Claude Code 会话配置与技能包
+.claude/
+
 # 依赖
 node_modules/
 
