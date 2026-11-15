@@ -114,7 +114,7 @@ export function showIntro({ assets, characters, roles, onStart, resume = false }
 
   const note = document.createElement('p');
   note.className = 'startNote';
-  note.textContent = '开始后可在右上角 ⚙ 调整提示强度；对局中按 F 快进、E 结束回合。';
+  note.textContent = '开始后可在右上角 ⚙ 调整提示强度；对局中按 E 结束回合。';
   body.appendChild(note);
 
   // 角色页：棋盘式双列分格——左列 9:16 + 9:12，右列 9:12 + 9:16，
@@ -192,29 +192,39 @@ export function showIntro({ assets, characters, roles, onStart, resume = false }
   overlay.classList.remove('hidden');
 }
 
-export function showGameOver({ assets, state, humanIndex }) {
+/**
+ * 终局结算：消费客户端投影（终局后引擎已全量亮出身份，座位模型里 role 均有值）。
+ * seat 为本地座位号，用于「你赢了/你输了」与结果表标注。
+ */
+export function showGameOver({ assets, projection, seat }) {
   const { overlay, box, title, body, btn } = overlayParts();
   box.classList.remove('introMode', 'introResume'); // 退出书页定版，恢复通用遮罩框
   box.querySelector('.introClose')?.remove();
-  const w = state.winner;
+  const w = projection.result;
+  const ROLE_NAMES = {
+    frontier_lab: '前沿实验室',
+    licensed_partner: '授权被许可方',
+    distiller: '未授权蒸馏者',
+    lone_wolf: '开源独狼',
+  };
   const campLabel = w.winner === 'frontier_lab' ? '前沿实验室阵营'
     : w.winner === 'distiller' ? '未授权蒸馏者阵营' : '开源独狼';
-  const human = state.players[humanIndex];
+  const human = projection.seats.find((p) => p.index === seat);
   const didWin = (p) => w.winner === 'lone_wolf'
-    ? p.role.id === 'lone_wolf' && p.alive
+    ? p.role?.id === 'lone_wolf' && p.alive
     : w.winner === 'distiller'
-      ? p.role.id === 'distiller'
-      : p.role.id === 'frontier_lab' || p.role.id === 'licensed_partner';
-  const youWon = didWin(human);
+      ? p.role?.id === 'distiller'
+      : p.role?.id === 'frontier_lab' || p.role?.id === 'licensed_partner';
+  const youWon = human ? didWin(human) : false;
 
   const table = document.createElement('table');
   table.className = 'resultTable';
   table.innerHTML = '<thead><tr><th>玩家</th><th>角色</th><th>身份</th><th>状态</th><th>结果</th></tr></thead>';
   const tbody = document.createElement('tbody');
-  for (const p of state.players) {
+  for (const p of projection.seats) {
     const tr = document.createElement('tr');
     if (didWin(p)) tr.className = 'win';
-    tr.appendChild(document.createElement('td')).textContent = p.index === humanIndex ? '你' : p.name;
+    tr.appendChild(document.createElement('td')).textContent = p.index === seat ? '你' : p.name;
     const charTd = document.createElement('td');
     charTd.className = 'withIcon';
     const avatar = img(assets?.character(p.character.id), 'miniAvatar', p.character.name);
@@ -223,9 +233,10 @@ export function showGameOver({ assets, state, humanIndex }) {
     tr.appendChild(charTd);
     const roleTd = document.createElement('td');
     roleTd.className = 'withIcon';
-    const roleIcon = img(assets?.role(p.role.id), 'miniRole', p.role.name);
+    const roleName = ROLE_NAMES[p.role?.id] ?? '未公开';
+    const roleIcon = img(assets?.role(p.role?.id), 'miniRole', roleName);
     if (roleIcon) roleTd.appendChild(roleIcon);
-    roleTd.appendChild(document.createTextNode(p.role.name));
+    roleTd.appendChild(document.createTextNode(roleName));
     tr.appendChild(roleTd);
     tr.appendChild(document.createElement('td')).textContent = p.alive ? `存活（${p.compute}）` : '出局';
     tr.appendChild(document.createElement('td')).textContent = didWin(p) ? '胜' : '负';
@@ -243,10 +254,10 @@ export function showGameOver({ assets, state, humanIndex }) {
 
   const mine = document.createElement('p');
   const b = document.createElement('b');
-  b.textContent = human.role.name;
+  b.textContent = ROLE_NAMES[human?.role?.id] ?? '未公开';
   mine.appendChild(document.createTextNode('你的身份是 '));
   mine.appendChild(b);
-  mine.appendChild(document.createTextNode(`，共进行了 ${state.turnNumber} 回合。`));
+  mine.appendChild(document.createTextNode(`，共进行了 ${projection.turnNumber} 回合。`));
   body.appendChild(mine);
   body.appendChild(table);
 

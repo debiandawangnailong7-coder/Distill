@@ -19,7 +19,6 @@
       <span id="phaseInfo" class="phaseInfo"></span>
       <button id="logBtn" class="iconBtn" title="案件记录" aria-label="打开案件记录">记录</button>
       <button id="settingsBtn" class="iconBtn" title="设置" aria-label="打开设置">⚙</button>
-      <button id="speedBtn" class="iconBtn" title="切换快进" aria-label="切换快进">快进</button>
     </div>
   </header>
 
@@ -65,19 +64,29 @@
     <div id="actions"></div>
   </section>
 
-  <div id="responseTray" class="hidden" aria-live="polite"></div>
-
-  <div id="modal" class="hidden" role="dialog" aria-modal="true">
-    <div id="modalBox">
-      <div id="modalKicker"></div>
-      <div id="modalPrompt"></div>
-      <div id="modalOptions"></div>
-      <div id="modalFooter">
-        <span id="modalHint"></span>
-        <button id="modalConfirm">确认</button>
-      </div>
+  <!-- 单一焦点弹窗：交互窗（引擎请求，强制）与检视窗（座位档案，自愿）互斥共用。 -->
+  <div id="focusModal" class="hidden" role="dialog" aria-modal="true">
+    <div id="focusBox">
+      <header id="focusHead">
+        <span id="focusKicker"></span>
+        <!-- 倒计时区域占位：联机响应倒计时接入前恒为静态值。 -->
+        <span id="focusCount" class="countdown" title="倒计时（占位）">99天</span>
+        <div class="focusHeadBtns">
+          <button id="focusCollapse" class="iconBtn" title="收起为待处理" aria-label="收起弹窗">—</button>
+          <button id="focusClose" class="iconBtn hidden" title="关闭" aria-label="关闭弹窗">×</button>
+        </div>
+      </header>
+      <div id="focusPrompt"></div>
+      <div id="focusBody"></div>
+      <footer id="focusFoot">
+        <span id="focusHint"></span>
+        <button id="focusConfirm">确认</button>
+      </footer>
     </div>
   </div>
+
+  <!-- 被收起的交互窗：待处理标记，点击切回。 -->
+  <button id="pendingBadge" class="hidden" aria-live="polite"></button>
 
   <div id="overlay" role="dialog" aria-modal="true">
     <div id="overlayBox">
@@ -99,13 +108,12 @@
       </div>
     </div>
     <label class="settingRow"><span>减少动效</span><input id="reduceMotion" type="checkbox"></label>
-    <label class="settingRow"><span>快进</span><input id="fastMode" type="checkbox"></label>
     <div class="settingRow"><span>角色介绍</span><button id="introBtn" class="iconBtn" type="button">查看</button></div>
     <p class="settingNote">新手会解释第一次遇到的机制；专家只保留数字与键盘操作。</p>
   </div>
 
   <div id="toastLayer" aria-live="polite"></div>
 </div>
-<script type="module" src="./src/ui/app.js"></script>
+<script type="module" src="./src/demo.js"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ const DIST = join(ROOT, 'dist');
 // 测试、脚本、规则文档与 node 侧工具都不进公开产物。
 const PUBLIC = [
   'index.html',
+  'src/demo.js',
   'src/engine/rng.js',
   'src/engine/rules.js',
   'src/engine/game.js',
@@ -19,10 +20,12 @@ const PUBLIC = [
   'src/ui/app.js',
   'src/ui/assets.js',
   'src/ui/characterCard.js',
+  'src/ui/focus.js',
   'src/ui/hints.js',
   'src/ui/input.js',
   'src/ui/intent.js',
   'src/ui/motion.js',
+  'src/ui/project.js',
   'src/ui/render.js',
   'src/ui/screens.js',
   'data/deck.json',

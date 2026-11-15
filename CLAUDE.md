@@ -66,13 +66,15 @@ data/roles.json ─────────────────────�
 
 ### UI（src/ui）
 
-- `app.js`：启动、引擎接线、人类决策 Promise、事件 → 动画队列、设置。人类为 0 号座位，默认 5 人。
-- `screens.js`：页面级界面——开场介绍（普通立绘角色墙，缺图走奶蛙占位）与终局结算，与牌桌 keyed DOM 分离。
-- `render.js`：keyed DOM。座位按 `player.index`、手牌按 `card.uid`、舞台按 item id 复用节点，**禁止全量重建**；卡面/座位/牌堆/行动条/弹窗/响应托盘都在这里。
-- `input.js`：指针状态机。拖手牌到座位、拖到中央直接使用、点击选牌 + 点座位、键盘 1–9/方向键/Enter/Esc、Tab 切换「当作指控 / 正常使用」。
-- `motion.js`：可等待、可快进、可降级的动画队列；`decide()` 前 `await drain()`，保证先看完上一拍。`shared/style.css` 管视觉，`#app.responding` 在防御响应时隐藏手牌并放大桌面。
+- `app.js`：通用客户端（`bootDistillClient`）。不持有引擎、不 import AI/引擎，只消费协议三件套：`decide(ctx)`（本地座位走人机交互，其余交给入口注入的外部决策者）、`onEvent(e)`（事件流，驱动动画与公共元数据跟踪）、`view(seat)`（`getView` 注入，渲染唯一信息来源）。本家私有信息取 `view.you`，他人只有 `handCount` 与 revealed 后的身份。事件 → 动画见下方 motion。
+- `src/demo.js`（入口层，不属于 src/ui）：单机 demo 编排入口——解析 `?seat/seed/players/autoplay/auto/mode/reduce` 参数、错误上报（`window.__distillErrors`）、创建 AI 与 Game 并把 decide/getView 注进客户端。默认 seat=0，其余座位 AI 托管；`?autoplay=1` 连本地座位一起托管（整局回归）。
+- `project.js`：协议投影层（纯函数，可单测）。把 view 快照 + 事件流跟踪的公共元数据（当前回合/终局）整理成座位模型：算力图标三态（满/损/空，数量=maxCompute）、装备四槽→三显示位（武器/道具/马，distance_in/out 合并为「马」+1/-1）、立绘轴（满血 normal、残血 Q 版、缺图奶蛙兜底）、座位环以本家为正下方。
+- `focus.js`：单一焦点弹窗仲裁（纯状态机，可单测）。交互窗（引擎 select 请求，强制）优先级高于检视窗（点座位卡的技能+装备说明）；交互窗可收起为待处理徽标，收起期间检视窗可占用弹窗；倒计时区域占位恒为「99天」。不再支持快进。
+- `render.js`：keyed DOM。座位按 `player.index`、手牌按 `card.uid`、舞台按 item id 复用节点，**禁止全量重建**；卡面/座位卡（三国杀式：左下手牌数+算力图标、中立绘、装备区、位次编号、右上身份徽记「未公开」占位）/牌堆/行动条/焦点弹窗都在这里。
+- `input.js`：指针状态机。拖手牌到座位、拖到中央直接使用、点击选牌 + 点座位、键盘 1–9/方向键/Enter/Esc、Tab 切换「当作指控 / 正常使用」。点空闲座位=检视弹窗；出牌阶段且已瞄准=点击提交攻击。
+- `motion.js`：可等待、可降级（reduceMotion 时全部瞬时）的动画队列；`decide()` 前 `await drain()`，同一时刻至多一条主动画。固定句式动画：攻击=卡牌从来源飞向目标+光束、声明响应=斜插入场与攻击牌并排、摸牌=牌堆脉冲+牌背飞入座位、装备=飞入装备槽落槽、判定=从牌堆翻出翻转入场、伤害/回复/出局=浮字+震屏。
 - `hints.js`：三档提示（新手/标准/专家），新手 coach mark 首次出现，`localStorage` 记忆。`intent.js` 是纯函数意图层（可单测），`assets.js` 处理 manifest/URL。
-- 调试入口：`?auto=1&seed=23574&players=5&fast=1` 直接开局；`&autoplay=1` 让 AI 托管人类跑完整局（用于回归）。静态视觉预览：`/src/ui/preview.html?mode=targeting|actions|modal|gameover|intro`。
+- 调试入口：`?auto=1&seed=23574&players=5&seat=3` 直接以 3 号位视角开局；`&autoplay=1&reduce=1` AI 托管整局（动画瞬时，回归用）。静态视觉预览：`/src/ui/preview.html?mode=targeting|actions|modal|inspect|gameover|intro`。
 - 素材经 `assets/manifest.json` 索引：`status === 'ready'` 用专属图，否则用 `fallback` 通用徽记；manifest 缺失或加载失败时退回纯文字 UI。路径必须用 `new URL(path, document.baseURI)`，CSS 自定义属性里的相对 URL 基准不可靠。
 
 ### 素材与构建

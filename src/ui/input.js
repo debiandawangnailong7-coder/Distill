@@ -1,5 +1,8 @@
-import { rules } from '../engine/index.js';
-import { createCharacterCard, skillDetailText } from './characterCard.js';
+import {
+  maxComputeOf,
+  rangeOfYou,
+  hasMechanicOf,
+} from './project.js';
 import {
   actionsForCard,
   targetedActions,
@@ -15,10 +18,11 @@ import {
 } from './intent.js';
 
 /**
- * 指针/键盘输入层。
+ * 指针/键盘输入层（纯客户端）：只消费 view 投影，不读原始 state。
  * 桌面端优先拖拽；点击选牌 + 点座位是等价路径；键盘 1–9 / 方向键 / Enter / Esc。
+ * 点空闲座位打开该角色的检视弹窗（技能 + 装备效果）。
  */
-export function createInput({ assets, motion, renderer, hints, getState, getUi, onIntent, onFastToggle }) {
+export function createInput({ motion, renderer, hints, getView, onIntent }) {
   const handHost = document.getElementById('hand');
   const seatHost = document.getElementById('seats');
   const table = document.getElementById('table');
@@ -30,61 +34,94 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
   let suppressSeatClickUntil = 0;
   let targetCursor = -1;
 
+  const view = () => getView();
   const ui = () => getUi();
-  const state = () => getState();
+  // app 启动后注入（避免环引用）
+  let getUi = () => ({});
+  function bindUi(getter) { getUi = getter; }
+
   const isPlayPhase = () => ui().pending?.type === 'play_action';
+  const localSeat = () => view()?.yourIndex ?? 0;
 
   function actsFor(uid) {
     return isPlayPhase() ? actionsForCard(ui().pending.actions, uid) : [];
   }
 
-  function human() {
-    return state()?.players?.[0] ?? null;
+  function me() {
+    return view()?.you ?? null;
+  }
+
+  function seatModel(index) {
+    const v = view();
+    if (!v) return null;
+    if (v.yourIndex === index) {
+      return {
+        index,
+        isYou: true,
+        name: v.you.name,
+        alive: v.you.alive,
+        character: v.you.character,
+        compute: v.you.compute,
+        maxCompute: maxComputeOf(v.you),
+        handCount: v.you.hand.length,
+        equipment: v.you.equipment,
+        distance: null,
+        targetable: false,
+      };
+    }
+    return v.others.find((o) => o.index === index) ?? null;
   }
 
   function cardName(uid) {
-    return human()?.hand.find((c) => c.uid === uid)?.name ?? '手牌';
+    return me()?.hand.find((c) => c.uid === uid)?.name ?? '手牌';
   }
 
   /**
    * 点一张不可用的牌时给出具体原因，而不是笼统的「不能使用」。
-   * 减少「技能/道具/卡牌莫名失效」的误判。
+   * 减少「技能/道具/卡牌莫名失效」的误判。所有判断只走 view 投影数据。
    */
   function unavailableReason(uid) {
-    const me = human();
-    const s = state();
-    const card = me?.hand.find((c) => c.uid === uid);
-    if (!card || !me || !s) return '这张牌现在不能使用。';
-    const others = s.players.filter((p) => p.alive && p.index !== me.index);
+    const v = view();
+    const you = v?.you;
+    const card = you?.hand.find((c) => c.uid === uid);
+    if (!card || !you || !v) return '这张牌现在不能使用。';
+    const aliveOthers = v.others.filter((o) => o.alive);
     switch (card.kind) {
       case 'defense':
         return '「合规声明」只能在被指控时作为响应打出。';
       case 'attack': {
-        const inRange = others.filter((p) => rules.canTarget(s, me, p));
+        const inRange = aliveOthers.filter((o) => o.targetable);
         if (!inRange.length) {
-          const nearest = others.length
-            ? Math.min(...others.map((p) => rules.effectiveDistance(s, me, p)))
+          const nearest = aliveOthers.length
+            ? Math.min(...aliveOthers.map((o) => o.distance ?? Infinity))
             : 0;
-          return `射程内没有目标：当前射程 ${rules.rangeOf(me)}，最近对手距离 ${nearest}。可以先装备基建武器。`;
+          return `射程内没有目标：当前射程 ${rangeOfYou(you)}，最近对手距离 ${nearest}。可以先装备基建武器。`;
         }
         return '本回合的「蒸馏指控」次数已经用完。';
       }
       case 'heal':
-        if (me.compute >= rules.maxCompute(me)) return '算力已满，无法继续回复。';
+        if (you.compute >= maxComputeOf(you)) return '算力已满，无法继续回复。';
         return '仅剩 2 人时不能主动使用「融资到账」。';
       case 'steal':
-      case 'force_discard':
-        return '有效距离 1 内没有可抽取/弃牌的目标。';
+      case 'force_discard': {
+        const maxD = card.params?.maxDistance ?? 1;
+        const hasTarget = aliveOthers.some(
+          (o) => (o.distance ?? Infinity) <= maxD &&
+            (o.handCount > 0 || Object.values(o.equipment ?? {}).some(Boolean))
+        );
+        if (hasTarget) return '这张牌现在不能使用。';
+        return `有效距离 ${maxD} 内没有可抽取/弃牌的目标。`;
+      }
       case 'jail':
-        return '场上已经有一张「账号封禁」。';
+        return v.inPlay.jail ? '场上已经有一张「账号封禁」。' : '这张牌现在不能使用。';
       case 'dynamite':
-        return '场上已经有一张「AGI 宣言」。';
+        return v.inPlay.dynamite ? '场上已经有一张「AGI 宣言」。' : '这张牌现在不能使用。';
       case 'mass_heal':
-        return '仅剩 2 人时不能主动使用群体回复。';
+        return aliveOthers.length <= 1 ? '仅剩 2 人时不能主动使用群体回复。' : '这张牌现在不能使用。';
       case 'distance':
       case 'product': {
         const slot = card.slot;
-        if (slot && me.equipment[slot]) {
+        if (slot && you.equipment[slot]) {
           return `「${SLOT_LABEL[slot] ?? slot}」槽位已经有装备，同槽位不能叠放。`;
         }
         return '这张装备现在不能使用。';
@@ -107,10 +144,14 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
   function endDragVisuals() {
     clearRange();
     renderer.clearDropTarget();
-    renderer.render(state(), ui());
+    renderer.render(projectionOf(), ui());
     hints.hide();
     lastHintKey = null;
   }
+
+  // input 只持有 view；投影组装交给 app 注入，避免两处重复维护 meta。
+  let projectionOf = () => null;
+  function bindProjection(fn) { projectionOf = fn; }
 
   function makeGhost(cardEl) {
     const ghost = cardEl.cloneNode(true);
@@ -131,15 +172,14 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
   }
 
   function hintForTarget(action, targetIndex, uid = null) {
-    const s = state();
-    const me = s.players[0];
-    const target = s.players[targetIndex];
-    if (!me || !target) return '';
-    const dist = rules.effectiveDistance(s, me, target);
-    const range = rules.rangeOf(me);
+    const target = seatModel(targetIndex);
+    const you = me();
+    if (!you || !target) return '';
+    const dist = target.distance ?? '—';
+    const range = rangeOfYou(you);
     const bits = [`<b>${actionLabel(action)}</b>`, `距离 ${dist} / 射程 ${range}`];
     if (action.asAttack || action.typeId === 'attack') {
-      const need = rules.hasMechanic(target, 'attack_needs_two_defenses') ? 2 : 1;
+      const need = hasMechanicOf(target.character, 'attack_needs_two_defenses') ? 2 : 1;
       bits.push(need === 2 ? '目标需要 2 张「合规声明」' : '命中后目标失去 1 点算力');
     }
     if (uid && hasIntentChoice(ui().pending.actions, uid, targetIndex)) {
@@ -149,10 +189,10 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
   }
 
   function updateTarget(targetIndex, clientX, clientY) {
-    const s = state();
+    const v = view();
     const u = ui();
-    const target = s?.players?.[targetIndex];
-    if (!target) return;
+    const target = seatModel(targetIndex);
+    if (!v || !target) return;
     const action = actionForTarget(u.pending.actions, drag.uid, targetIndex, u.preferAsAttack);
     if (!action) {
       u.dropTargetIndex = null;
@@ -161,7 +201,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
       const key = `x:${targetIndex}`;
       if (lastHintKey !== key) {
         lastHintKey = key;
-        hints.show(`这张牌不能对 <b>${target.name}</b> 使用<br>距离 ${rules.effectiveDistance(s, s.players[0], target)} / 射程 ${rules.rangeOf(s.players[0])}`, renderer.seatEl(targetIndex), { force: true });
+        hints.show(`这张牌不能对 <b>${target.name}</b> 使用<br>距离 ${target.distance ?? '—'} / 射程 ${rangeOfYou(v.you)}`, renderer.seatEl(targetIndex), { force: true });
       }
       return;
     }
@@ -176,7 +216,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
       }
     }
     clearRange();
-    rangeLine = motion.rangeLine(rangeLayer, renderer.seatEl(0), renderer.seatEl(targetIndex));
+    rangeLine = motion.rangeLine(rangeLayer, renderer.seatEl(localSeat()), renderer.seatEl(targetIndex));
   }
 
   function commit(action) {
@@ -197,7 +237,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
     u.selectedCardUid = uid;
     u.preferAsAttack = false;
     u.targeting = targeted.length ? { actions: targeted, label: cardName(uid), source: 'card' } : null;
-    renderer.render(state(), u);
+    renderer.render(projectionOf(), u);
     hints.brief(targeted.length
       ? `「${cardName(uid)}」— 拖到高亮座位，或点击座位`
       : `「${cardName(uid)}」— 在右侧选择用法，或拖到桌面中央`);
@@ -231,7 +271,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
 
   /**
    * 行动面板的统一入口：需要选目标的主动效果先进入瞄准状态，
-   * 其余行动直接提交。修复【生产力杠杆】【舆论广播】没有任何 UI 入口的问题。
+   * 其余行动直接提交。
    */
   function handleAction(action) {
     if (!action || !isPlayPhase()) return;
@@ -253,7 +293,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
     u.preferAsAttack = false;
     u.targeting = { actions: group, label: actionGroupLabel(action), source: 'action' };
     targetCursor = -1;
-    renderer.render(state(), u);
+    renderer.render(projectionOf(), u);
     hints.brief(`「${u.targeting.label}」— 点击高亮座位指定目标。Esc 取消。`);
   }
 
@@ -295,7 +335,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
       const targeted = targetedActions(u.pending.actions, drag.uid);
       u.selectedCardUid = drag.uid;
       u.targeting = targeted.length ? { actions: targeted, label: cardName(drag.uid), source: 'card' } : null;
-      renderer.render(state(), u);
+      renderer.render(projectionOf(), u);
     }
     moveGhost(drag.ghost, e.clientX, e.clientY);
 
@@ -362,46 +402,32 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
 
   function onSeatClick(e) {
     if (Date.now() < suppressSeatClickUntil) return;
-    if (!isPlayPhase()) return;
     const seatEl = e.target.closest?.('.seat[data-index]');
     if (!seatEl) return;
     const index = Number(seatEl.dataset.index);
-    const u = ui();
-    if (!u.selectedCardUid && !u.targeting) {
-      const target = state()?.players?.[index];
-      if (target && index !== 0) {
-        // 局内角色预览：与开场角色墙共用同一张角色卡（换用 Q 版美术轴），
-        // 点空闲座位即可查看对手的角色与技能。
-        const card = createCharacterCard(target.character, { assets, art: 'avatar', size: 'sm' });
-        const detail = document.createElement('div');
-        detail.className = 'charCardDetail';
-        detail.textContent = skillDetailText(target.character);
-        const wrap = document.createElement('div');
-        wrap.className = 'seatPreview';
-        wrap.appendChild(card);
-        wrap.appendChild(detail);
-        hints.show(wrap.innerHTML, seatEl, { force: true });
+    // 出牌阶段且正在瞄准 → 座位是攻击目标，点击即提交；否则点开检视弹窗。
+    if (isPlayPhase() && (ui().selectedCardUid || ui().targeting)) {
+      const action = actionAtTarget(index);
+      if (!action) {
+        renderer.toast(ui().targeting?.source === 'action' ? '这个效果不能对该目标使用' : '这张牌不能对该目标使用', 'bad');
+        return;
       }
+      commit(action);
       return;
     }
-    const action = actionAtTarget(index);
-    if (!action) {
-      renderer.toast(u.targeting?.source === 'action' ? '这个效果不能对该目标使用' : '这张牌不能对该目标使用', 'bad');
-      return;
-    }
-    commit(action);
+    renderer.openInspect(index);
   }
 
   function onKeyDown(e) {
     if (e.defaultPrevented) return;
     const tag = document.activeElement?.tagName;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag ?? '')) return;
-    const modalOpen = !document.getElementById('modal')?.classList.contains('hidden');
-    const responseOpen = !document.getElementById('responseTray')?.classList.contains('hidden');
-    if (modalOpen || responseOpen) {
+    const focusModalOpen = !document.getElementById('focusModal')?.classList.contains('hidden');
+    if (focusModalOpen) {
       if (e.key === 'Escape') {
-        // 由 app 的取消逻辑处理，这里只阻止穿透
+        // 弹窗优先消费 Esc：交互窗收起、检视窗关闭
         e.preventDefault();
+        renderer.handleEscape();
       }
       return;
     }
@@ -409,10 +435,6 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
     if (e.key === 'Escape') {
       e.preventDefault();
       cancel();
-      return;
-    }
-    if (e.key === 'f' || e.key === 'F') {
-      onFastToggle?.();
       return;
     }
     if (!isPlayPhase()) return;
@@ -427,7 +449,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
     }
 
     if (/^[1-9]$/.test(e.key)) {
-      const hand = human()?.hand ?? [];
+      const hand = me()?.hand ?? [];
       const idx = Number(e.key) - 1;
       if (hand[idx]) {
         e.preventDefault();
@@ -448,7 +470,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
       if (action) {
         hints.show(hintForTarget(action, idx, u.selectedCardUid), renderer.seatEl(idx), { force: true });
         clearRange();
-        rangeLine = motion.rangeLine(rangeLayer, renderer.seatEl(0), renderer.seatEl(idx));
+        rangeLine = motion.rangeLine(rangeLayer, renderer.seatEl(localSeat()), renderer.seatEl(idx));
       }
       return;
     }
@@ -480,12 +502,18 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
   handHost.addEventListener('pointerdown', onPointerDown);
   seatHost.addEventListener('click', onSeatClick);
   window.addEventListener('keydown', onKeyDown);
-  // 点击桌面空白取消选择
+  // 点击桌面空白取消选择（弹窗、抽屉、设置除外）
   table.addEventListener('click', (e) => {
     if (Date.now() < suppressSeatClickUntil) return;
-    if (e.target.closest?.('.seat, .handCard, #modal, #responseTray, #settingsPanel')) return;
+    if (e.target.closest?.('.seat, .handCard, #focusModal, #settingsPanel, #logDrawer')) return;
     if (ui().selectedCardUid) cancel();
   });
 
-  return { cancel, handleAction, refresh: () => renderer.render(state(), ui()) };
+  return {
+    cancel,
+    handleAction,
+    bindUi,
+    bindProjection,
+    refresh: () => renderer.render(projectionOf(), ui()),
+  };
 }
