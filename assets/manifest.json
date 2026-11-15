@@ -120,6 +120,15 @@
       "slot": "所有没有专属立绘的角色共用这张默认头像"
     },
     {
+      "kind": "generic",
+      "id": "kangaroo",
+      "name": "袋鼠团子占位",
+      "file": "assets/generic/kangaroo.png",
+      "format": "png",
+      "status": "ready",
+      "slot": "开场介绍页中「未推出模型」占位（袋鼠团子）；无立绘的在场角色仍用 char_default 奶蛙"
+    },
+    {
       "kind": "character",
       "id": "gpt_4o",
       "name": "GPT-4o",

@@ -15,7 +15,8 @@ assets/
     kind_<class>.png        4 张牌型徽记（攻击/防御/装备/行动）
     card_back.png  title.png
   characters/<id>.png  专属角色立绘（Q 版，座位头像），id 取自 data/characters.json
-  portraits/<id>.png   普通立绘，专供开场介绍页的角色墙（screens.js）；缺省退回奶蛙占位
+  portraits/<id>.png   普通立绘，专供开场介绍页的角色墙（screens.js）；无立绘的在场角色
+                       用 char_default 奶蛙占位，「未推出模型」占位卡用 generic/kangaroo 袋鼠
   cards/<id>.svg|.png  专属牌型图标，id 取自 data/cardTypes.json
   manifest.json        素材 → 数据 id 映射与状态，由脚本生成
 ```

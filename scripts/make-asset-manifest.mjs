@@ -37,6 +37,7 @@ const GENERIC = {
   cardBack: 'assets/generic/card_back',
   title: 'assets/generic/title',
   charDefault: 'assets/generic/char_default',
+  kangaroo: 'assets/generic/kangaroo',
 };
 
 const entries = [];
@@ -71,12 +72,14 @@ const SYSTEM_SLOT = {
   card_back: '牌堆 56x76px 与手牌背面',
   title: '开场遮罩与顶栏',
   char_default: '所有没有专属立绘的角色共用这张默认头像',
+  kangaroo: '开场介绍页中「未推出模型」占位（袋鼠团子）；无立绘的在场角色仍用 char_default 奶蛙',
 };
 
 for (const [id, name, base] of [
   ['card_back', '牌背', GENERIC.cardBack],
   ['title', '标题图', GENERIC.title],
   ['char_default', '默认角色立绘', GENERIC.charDefault],
+  ['kangaroo', '袋鼠团子占位', GENERIC.kangaroo],
 ]) {
   const picked = pickAsset(base);
   entries.push({

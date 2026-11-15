@@ -1,4 +1,5 @@
-import { rules, primarySkill } from '../engine/index.js';
+import { rules } from '../engine/index.js';
+import { skillLine, skillDetailText } from './characterCard.js';
 import {
   ROLE_LABEL,
   SLOT_LABEL,
@@ -185,8 +186,8 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
       setAvatar(parts.avatar, parts.fallback, assets?.character(p.character.id), p.character.name);
       parts.name.textContent = p.index === 0 ? '你' : p.name;
       parts.char.textContent = p.character.name;
-      parts.skill.textContent = `「${primarySkill(p.character)?.name ?? ''}」`;
-      parts.skill.title = primarySkill(p.character)?.effect ?? '';
+      parts.skill.textContent = skillLine(p.character);
+      parts.skill.title = skillDetailText(p.character);
 
       const dist = p.index === 0 || !p.alive ? null : rules.effectiveDistance(state, me, p);
       if (dist == null) {
@@ -315,7 +316,7 @@ export function createRenderer({ assets, hints, onAction, onSelectCard, onCancel
       <span class="youStat">算力 <b>${Math.max(0, human.compute)}</b>/${max}</span>
       <span class="youStat">射程 <b>${range}</b></span>
       <span class="youStat">手牌 <b>${human.hand.length}</b>/${limit}</span>
-      <span class="youSkill" title="${primarySkill(human.character)?.effect ?? ''}">「${primarySkill(human.character)?.name ?? ''}」</span>`;
+      <span class="youSkill" title="${skillDetailText(human.character)}">${skillLine(human.character)}</span>`;
   }
 
   // ------------------------------------------------------------ piles / stage

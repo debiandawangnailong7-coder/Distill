@@ -956,36 +956,81 @@ button:focus-visible, [tabindex]:focus-visible {
   background: #0d141c;
   border: 1px solid #31465a;
 }
-.charCard-lg { cursor: pointer; transition: transform .12s; }
+.charCard-lg { transition: transform .12s; }
 .charCard-lg:hover { transform: translateY(-2px); }
-.charCard-lg .charCardArt { width: 100%; height: 168px; object-position: 50% 16%; }
-.charCard-lg.picked .charCardArt { border-color: var(--gold); }
+/* 3:4 竖版角色框（漫画人物档案式）。源立绘约 2:3，此处只裁去少量上下画面。 */
+.charCard-lg .charCardArt { width: 100%; aspect-ratio: 3 / 4; height: auto; object-position: 50% 18%; }
 .charCard-md .charCardArt { width: 74px; height: 74px; }
 .charCard-sm .charCardArt { width: 62px; height: 62px; border-radius: 8px; object-position: 50% 30%; }
 .charCardName { font-size: 11px; color: #d6e2ee; line-height: 1.2; }
+.charCard-lg .charCardName { font-size: 12px; font-weight: 700; }
 .charCardSkill { font-size: 10px; color: var(--gold); line-height: 1.2; }
+.charCard-lg .charCardSkill { font-size: 11px; }
 .charCardDetail { font-size: 11px; color: #bccad7; max-width: 240px; text-align: center; line-height: 1.5; }
 
-/* ---- 开场介绍页（screens.js）：2×2 立绘翻页 + 技能预览 + 身份一览 ---- */
+/* ---- 开场介绍页（screens.js）：固定「书页」框，漫画分格版式 ---- */
+/* 书页定版：按钮与翻页器在上方，页面尺寸固定不随翻页跳动 */
+#overlayBox.introMode {
+  /* 18:28 书页：高度定版，分格按 16:12 吃满剩余高度，永不溢出 */
+  width: min(438px, 92vw);
+  height: min(680px, 92svh);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 16px;
+}
+#overlayBox.introMode #overlayBtn {
+  order: -1;
+  align-self: center;
+  margin: 0 0 10px;
+  padding: 8px 22px;
+  font-size: 13px;
+}
+/* resume 模式：入口按钮换成右上角 ✕ */
+#overlayBox.introResume #overlayBtn { display: none; }
+#overlayBox .introClose { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; padding: 0; font-size: 14px; }
+#overlayBox.introMode #overlayBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+#overlayBox.introMode #overlayBody.castMode { justify-content: flex-start; }
+#overlayBox.introMode #overlayTitle { margin: 2px 0 10px; }
+#overlayBox.introMode #overlayTitle img.titleImg { width: min(300px, 72%); }
+#overlayBox.introMode #overlayKicker { font-size: 9px; }
+
 #overlayBody .introTagline { margin: 2px 0 12px; color: #d6e2ee; font-size: 13px; }
-#overlayBody .castGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 14px;
-  width: min(440px, 100%);
-  margin: 0 auto;
+/* 棋盘分格：左列 9:16→9:12，右列 9:12→9:16，两列同高，整页恰好 18:28。
+   分格高度按列高以 16:12 分配（flex 比例），内容恒等于定版高度，不产生滚动。 */
+#overlayBody .castCols { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
+.castCol { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.castCol .charCard { width: 100%; position: relative; min-height: 0; display: flex; }
+.castCol .pos0, .castCol .pos3 { flex: 16 1 0; }
+.castCol .pos1, .castCol .pos2 { flex: 12 1 0; }
+.castCol .charCardArt { width: 100%; height: 100%; aspect-ratio: auto; flex: 1; min-height: 0; }
+.castCol .pos0 .charCardArt, .castCol .pos3 .charCardArt { object-position: 50% 18%; }
+.castCol .pos1 .charCardArt, .castCol .pos2 .charCardArt { object-position: 50% 20%; }
+/* 名牌压在分格内底部（渐变压暗），不额外占据列高 */
+.castCol .charCard::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 38%;
+  background: linear-gradient(transparent, #0b1118d9);
+  border-radius: 0 0 10px 10px;
+  pointer-events: none;
 }
-#overlayBody .castDetail {
-  min-height: 36px;
-  margin: 10px auto 0;
-  width: min(440px, 100%);
-  text-align: center;
-  color: #d6e2ee;
-  font-size: 12px;
-  line-height: 1.5;
+.castCol .charCardName, .castCol .charCardSkill {
+  position: absolute;
+  bottom: 6px;
+  z-index: 1;
+  text-shadow: 0 1px 3px #000;
 }
-#overlayBody .castDetail.empty { color: #67809a; }
-#overlayBody .castPager { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 6px; }
+.castCol .charCardName { left: 9px; }
+.castCol .charCardSkill { right: 9px; }
+#overlayBody .castPager { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 0 0 10px; }
 #overlayBody .pagerBtn {
   appearance: none;
   border: 1px solid #3a4f62;

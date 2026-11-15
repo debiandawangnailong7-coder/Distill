@@ -2,7 +2,7 @@
  * 页面级界面：开场介绍（intro）与终局结算（game over）。
  * 它们是整页布局，不属于牌桌的 keyed DOM，因此与 render.js 分开。
  */
-import { createCharacterCard, skillDetailText } from './characterCard.js';
+import { createCharacterCard } from './characterCard.js';
 
 const SEEN_KEY = 'distill.intro.seen';
 const PAGE_SIZE = 4; // 2×2 网格
@@ -32,6 +32,7 @@ function img(src, cls, alt = '') {
 function overlayParts() {
   return {
     overlay: document.getElementById('overlay'),
+    box: document.getElementById('overlayBox'),
     kicker: document.getElementById('overlayKicker'),
     title: document.getElementById('overlayTitle'),
     body: document.getElementById('overlayBody'),
@@ -44,33 +45,38 @@ function hideOverlay() {
 }
 
 /**
- * 开场页：普通立绘角色卡 2×2 网格逐页翻阅（无普通立绘的角色用奶蛙占位），
- * 点击卡片在下方预览技能。卡片与局内技能预览共用 createCharacterCard 组件，
- * 只是 size 与美术轴（portrait/普通立绘 ↔ avatar/Q 版座位头像）不同。
+ * 开场页：固定尺寸的「书页」式翻页手册。
+ * 第 1 页是封面（标题图 + 一句 tagline + 身份一览），第 2 页起是漫画分格版式的
+ * 角色卡（每页 4 格：9:16 / 3:4 / 4:3 / 16:9）。翻页器与「开始/继续对局」按钮
+ * 固定在页面上方。排序：有非占位立绘的角色在前；无立绘的角色与「未推出模型」
+ * 占位用袋鼠团子，数量补足到 4 的倍数，保证末页版式完整。
  * resume=true 表示对局已在进行（从设置里重新打开），按钮改为「继续对局」。
  */
 export function showIntro({ assets, characters, roles, onStart, resume = false }) {
-  const { overlay, kicker, title, body, btn } = overlayParts();
+  const { overlay, box, kicker, title, body, btn } = overlayParts();
+  box.classList.add('introMode'); // 书页式定版：按钮与翻页器在上方，页面尺寸固定
+  box.classList.toggle('introResume', resume);
+  // resume 模式（从设置重访、对局进行中）：入口按钮换成右上角 ✕，关闭即回到牌桌
+  box.querySelector('.introClose')?.remove();
+  if (resume) {
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'iconBtn introClose';
+    close.textContent = '×';
+    close.setAttribute('aria-label', '关闭角色介绍');
+    close.addEventListener('click', hideOverlay);
+    box.appendChild(close);
+  }
+
   kicker.textContent = 'CASE FILE · 模型权重身份牌局';
   title.innerHTML = assets?.title
     ? `<img class="titleImg" src="${assets.title}" alt="DISTILL!">`
     : 'DISTILL!';
 
   body.replaceChildren();
+  body.classList.remove('castMode');
 
-  const tagline = document.createElement('p');
-  tagline.className = 'introTagline';
-  tagline.textContent = '一场关于模型权重的身份牌局。找出谁在蒸馏，别让实验室出局。';
-  body.appendChild(tagline);
-
-  const grid = document.createElement('div');
-  grid.className = 'castGrid';
-  body.appendChild(grid);
-
-  const detail = document.createElement('div');
-  detail.className = 'castDetail';
-  body.appendChild(detail);
-
+  // 翻页器固定在页面顶部
   const pager = document.createElement('div');
   pager.className = 'castPager';
   const prev = document.createElement('button');
@@ -85,6 +91,11 @@ export function showIntro({ assets, characters, roles, onStart, resume = false }
   next.textContent = '›';
   pager.append(prev, counter, next);
   body.appendChild(pager);
+
+  const tagline = document.createElement('p');
+  tagline.className = 'introTagline';
+  tagline.textContent = '一场关于模型权重的身份牌局。找出谁在蒸馏，别让实验室出局。';
+  body.appendChild(tagline);
 
   const roleRow = document.createElement('div');
   roleRow.className = 'roleRow';
@@ -103,37 +114,75 @@ export function showIntro({ assets, characters, roles, onStart, resume = false }
 
   const note = document.createElement('p');
   note.className = 'startNote';
-  note.textContent = '提示强度随时可在 ⚙ 调整；对局中按 F 快进、E 结束回合。';
+  note.textContent = '开始后可在右上角 ⚙ 调整提示强度；对局中按 F 快进、E 结束回合。';
   body.appendChild(note);
 
-  const cast = characters ?? [];
-  const pageCount = Math.max(1, Math.ceil(cast.length / PAGE_SIZE));
+  // 角色页：棋盘式双列分格——左列 9:16 + 9:12，右列 9:12 + 9:16，
+  // 两列各自 16+12 / 12+16，整页正好铺满 18:28（漫画分格版式）。
+  const rows = document.createElement('div');
+  rows.className = 'castCols';
+  const colL = document.createElement('div');
+  colL.className = 'castCol';
+  const colR = document.createElement('div');
+  colR.className = 'castCol';
+  rows.append(colL, colR);
+  body.appendChild(rows);
+
+  // 排序：有非占位立绘的角色在前（组内保持 characters.json 顺序）；无立绘的
+  // 在场角色保持默认奶蛙占位；最后补 3 个「未推出模型」位，用袋鼠团子占位，
+  // 总数凑满 4 的倍数，保证末页版式完整。
+  const list = characters ?? [];
+  const withArt = list.filter((c) => assets?.hasPortrait?.(c.id) === true);
+  const noArt = list.filter((c) => assets?.hasPortrait?.(c.id) !== true);
+  const teasers = [1, 2, 3].map((n) => ({
+    id: `upcoming_${n}`,
+    name: `未推出模型 ${'①②③'[n - 1]}`,
+    skills: [],
+  }));
+  const cast = [...withArt, ...noArt, ...teasers];
+  const kangaroo = assets?.kangaroo ?? null;
+  const fillerArt = (c) => (c.id.startsWith('upcoming_') ? kangaroo : null);
+  const pageCount = 1 + Math.ceil(cast.length / PAGE_SIZE);
   let page = 0;
-  let selected = null;
 
   function render() {
-    grid.replaceChildren();
-    for (const c of cast.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)) {
-      const card = createCharacterCard(c, { assets, art: 'portrait', size: 'lg' });
-      if (selected === c) card.classList.add('picked');
-      card.addEventListener('click', () => {
-        selected = selected === c ? null : c;
-        render();
+    const isCover = page === 0;
+    kicker.classList.toggle('hidden', !isCover);
+    title.classList.toggle('hidden', !isCover);
+    tagline.classList.toggle('hidden', !isCover);
+    roleRow.classList.toggle('hidden', !isCover);
+    note.classList.toggle('hidden', !isCover);
+    rows.classList.toggle('hidden', isCover);
+    body.classList.toggle('castMode', !isCover);
+
+    colL.replaceChildren();
+    colR.replaceChildren();
+    if (!isCover) {
+      const start = (page - 1) * PAGE_SIZE;
+      const quads = cast.slice(start, start + PAGE_SIZE);
+      while (quads.length < PAGE_SIZE) quads.push(null); // 占满 4 格，版式稳定
+      quads.forEach((c, i) => {
+        if (!c) return;
+        const card = createCharacterCard(c, {
+          assets,
+          art: 'portrait',
+          size: 'lg',
+          artSrc: fillerArt(c),
+        });
+        card.classList.add(`pos${i}`);
+        (i % 2 === 0 ? colL : colR).appendChild(card);
       });
-      grid.appendChild(card);
     }
+
     counter.textContent = `${page + 1} / ${pageCount}`;
     prev.disabled = page === 0;
     next.disabled = page >= pageCount - 1;
-    const text = selected ? skillDetailText(selected) : '点击角色卡预览技能';
-    detail.textContent = text;
-    detail.classList.toggle('empty', !selected);
   }
   prev.addEventListener('click', () => { page = Math.max(0, page - 1); render(); });
   next.addEventListener('click', () => { page = Math.min(pageCount - 1, page + 1); render(); });
   render();
 
-  btn.textContent = resume ? '继续对局' : '开始对局';
+  btn.textContent = '开始对局';
   btn.disabled = false;
   btn.onclick = () => {
     markSeen();
@@ -144,7 +193,9 @@ export function showIntro({ assets, characters, roles, onStart, resume = false }
 }
 
 export function showGameOver({ assets, state, humanIndex }) {
-  const { overlay, title, body, btn } = overlayParts();
+  const { overlay, box, title, body, btn } = overlayParts();
+  box.classList.remove('introMode', 'introResume'); // 退出书页定版，恢复通用遮罩框
+  box.querySelector('.introClose')?.remove();
   const w = state.winner;
   const campLabel = w.winner === 'frontier_lab' ? '前沿实验室阵营'
     : w.winner === 'distiller' ? '未授权蒸馏者阵营' : '开源独狼';

@@ -31,15 +31,20 @@ export function buildAssetIndex(manifest) {
   };
 
   const charDefault = url(byKey.get('generic:char_default'));
+  const kangaroo = url(byKey.get('generic:kangaroo'));
   const portraitOf = (id) => {
     const e = byKey.get(`character:${id}`);
     const path = e?.portrait && e.status === 'ready' ? e.portrait : e?.portraitFallback ?? e?.fallback;
     return path ? new URL(path, document.baseURI).href : charDefault;
   };
+  // 是否有专属普通立绘（开场页排序用：非占位立绘排在前，奶蛙占位靠后）。
+  const hasPortrait = (id) => Boolean(byKey.get(`character:${id}`)?.portrait);
   return {
     raw: manifest,
     character: (id) => url(byKey.get(`character:${id}`)) ?? charDefault,
     portrait: portraitOf,
+    hasPortrait,
+    kangaroo,
     role: (id) => url(byKey.get(`generic:role_${id}`)),
     card: (card) => url(byKey.get(`card:${card.typeId}`)) ?? url(byKey.get(`generic:${kindId(card)}`)),
     kind: (card) => url(byKey.get(`generic:${kindId(card)}`)),
