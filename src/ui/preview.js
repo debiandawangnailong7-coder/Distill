@@ -1,11 +1,12 @@
 /**
- * 静态 UI 预览：不启动引擎，用固定 mock state 渲染牌桌。
+ * 静态 UI 预览：不启动引擎，用固定 mock view 渲染牌桌。
  * 用法：npm run serve 后打开 /src/ui/preview.html
- * 参数：?mode=targeting|actions|modal|gameover|intro
+ * 参数：?mode=targeting|actions|modal|inspect|gameover|intro
  */
 import { createRenderer } from './render.js';
 import { buildAssetIndex } from './assets.js';
 import { showIntro, showGameOver } from './screens.js';
+import { buildProjection } from './project.js';
 
 const root = document.getElementById('app');
 const mode = new URLSearchParams(location.search).get('mode') ?? 'targeting';
@@ -73,10 +74,30 @@ const players = [
   },
 ];
 
-const state = {
-  players,
-  drawPile: Array.from({ length: 62 }, (_, i) => card('place_holder', '未知牌', 'action')),
-  discardPile: Array.from({ length: 14 }, () => discardTop),
+// 与正式入口一致的 mock：客户端只认 view(seat)，预览直接构造 0 号座位的 view。
+const [youPlayer, ...rivalPlayers] = players;
+const view = {
+  yourIndex: 0,
+  you: youPlayer,
+  others: rivalPlayers.map((p) => ({
+    index: p.index,
+    name: p.name,
+    alive: p.alive,
+    character: p.character,
+    compute: p.compute,
+    maxCompute: p.character.compute + (p.role.id === 'frontier_lab' ? p.role.computeBonus : 0),
+    handCount: p.hand.length,
+    equipment: p.equipment,
+    jail: p.jail,
+    dynamite: p.dynamite,
+    role: p.revealed ? p.role : null,
+    distance: p.index === 2 ? 1 : 2,
+    targetable: p.index !== 4,
+  })),
+  turnNumber: 7,
+  drawPileCount: 62,
+  discardTop,
+  inPlay: { jail: false, dynamite: false },
   log: [
     { text: '—— 第 7 回合：你（DeepSeek-R1）——' },
     { text: 'dario 使用 ♣9 蒸馏指控 · 训练数据溯源 → 你' },
@@ -85,12 +106,9 @@ const state = {
     { text: 'sam A. 失去 1 点算力（蒸馏指控），剩余 2' },
     { text: '你 装备 Code Agent（射程 2）' },
   ],
-  turnNumber: 7,
-  currentPlayerIndex: 0,
-  gameOver: false,
-  winner: null,
-  inPlay: { jail: false, dynamite: false },
 };
+
+const projection = () => buildProjection(view, { currentIndex: 0 });
 
 const attackActions = [1, 2, 3, 4].map((targetIndex) => ({
   kind: 'play_card', cardUid: attack.uid, typeId: 'attack', targetIndex,
@@ -128,27 +146,31 @@ const renderer = createRenderer({
   onCancel: () => {},
 });
 
-renderer.render(state, ui);
+renderer.render(projection(), ui);
 renderer.setStage([
   { id: 's1', card: attack, caption: '你 → dario', tone: 'attack' },
   { id: 's2', card: defense, caption: '响应 · dario', tone: 'defense' },
 ]);
 
 if (mode === 'modal') {
-  renderer.showModal({
+  renderer.showInteraction({
     type: 'select',
     purpose: 'discard_choice',
     prompt: '选择 2 张手牌弃掉（按顺序）',
-    options: players[0].hand.map((c) => ({ id: c.uid, label: `${c.name}${c.flavor ? ` · ${c.flavor}` : ''}`, card: c })),
+    options: youPlayer.hand.map((c) => ({ id: c.uid, label: `${c.name}${c.flavor ? ` · ${c.flavor}` : ''}`, card: c })),
     min: 2,
     max: 2,
     ordered: true,
   }, () => {});
 }
+if (mode === 'inspect') {
+  renderer.openInspect(2);
+}
 if (mode === 'gameover') {
-  state.gameOver = true;
-  state.winner = { winner: 'frontier_lab', reason: '所有蒸馏者与开源独狼均已出局' };
-  showGameOver({ assets, state, humanIndex: 0 });
+  // 终局引擎会全量亮出身份：mock 直接改写 view.others 的 role。
+  for (const o of view.others) o.role = players[o.index].role;
+  const finalProjection = buildProjection(view, { currentIndex: 0, gameOver: true, result: { winner: 'frontier_lab', reason: '所有蒸馏者与开源独狼均已出局' } });
+  showGameOver({ assets, projection: finalProjection, seat: 0 });
 }
 if (mode === 'intro') {
   showIntro({

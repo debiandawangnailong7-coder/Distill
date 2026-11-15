@@ -1,17 +1,17 @@
 /**
- * 可等待、可取消、可快进的动效队列。
+ * 可等待、可降级的动效队列。
  *
- * 引擎的事件是同步发出的；UI 把每个事件包成一个 beat 入队，按顺序播放。
- * 人类/AI 决策前 await drain()，保证“先看到上一拍，再轮到你”。
+ * 引擎的事件是同步发出的；UI 把每个事件包成一个 beat 入队，按顺序播放，
+ * 同一时刻至多一条主动画。决策前 await drain()，保证「先看到上一拍，再轮到你」。
+ * 降级：reduceMotion 时所有动画瞬时完成（相当于全部关闭），队列语义不变。
  */
 
-export function createMotion({ fast = false, reduced = false } = {}) {
+export function createMotion({ reduced = false } = {}) {
   let queue = [];
   let running = false;
-  let fastMode = fast;
   let reduceMode = reduced;
 
-  const instant = () => fastMode || reduceMode;
+  const instant = () => reduceMode;
   const scale = (ms) => (instant() ? 0 : Math.max(0, Math.round(ms)));
 
   function wait(ms) {
@@ -174,14 +174,76 @@ export function createMotion({ fast = false, reduced = false } = {}) {
     );
   }
 
-  async function cardSlide(el) {
+  /** 声明响应：从响应者方向斜插入场，与攻击牌并排。dirX 为响应者相对桌面中心的左右方向（±1）。 */
+  async function cardSlide(el, dirX = 1) {
     await animate(
       el,
       [
-        { opacity: 0, transform: 'translateX(34px) scale(.88)' },
-        { opacity: 1, transform: 'translateX(0) scale(1)' },
+        { opacity: 0, transform: `translate(${dirX * 46}px, 26px) scale(.88) rotate(${dirX * 6}deg)` },
+        { opacity: 1, transform: 'translate(0, 0) scale(1) rotate(0deg)' },
       ],
-      { duration: 280 }
+      { duration: 300 }
+    );
+  }
+
+  /**
+   * 飞牌：把 fromEl 的「影像」从来源位置抛到目标位置后移除。
+   * 用于攻击出牌（手牌区→目标座位）、摸牌（牌堆→座位）、装备（座位→装备槽）。
+   * 传 node 时克隆该节点作为飞行体（卡面/牌背），否则用空壳 + className。
+   * reduceMotion 时直接省略（宁可省略，不堆积）。
+   */
+  async function flyClone(host, fromEl, toEl, { node = null, className = '' } = {}) {
+    if (!host || !fromEl || !toEl) return;
+    const fb = fromEl.getBoundingClientRect();
+    const tb = toEl.getBoundingClientRect();
+    const hb = host.getBoundingClientRect();
+    const ghost = document.createElement('div');
+    ghost.className = `flyGhost ${className}`;
+    const payload = node ? node.cloneNode(true) : null;
+    if (payload) ghost.appendChild(payload);
+    ghost.style.width = `${Math.max(fb.width, 40)}px`;
+    ghost.style.height = `${Math.max(fb.height, 40)}px`;
+    const sx = fb.left + fb.width / 2 - hb.left;
+    const sy = fb.top + fb.height / 2 - hb.top;
+    const tx = tb.left + tb.width / 2 - hb.left;
+    const ty = tb.top + tb.height / 2 - hb.top;
+    ghost.style.left = `${sx}px`;
+    ghost.style.top = `${sy}px`;
+    host.appendChild(ghost);
+    // 入文档后再按真实卡面调整飞行体尺寸（脱离文档的节点量不到宽高）。
+    if (payload) {
+      const pb = payload.getBoundingClientRect();
+      if (pb.width > 0 && pb.height > 0) {
+        ghost.style.width = `${pb.width}px`;
+        ghost.style.height = `${pb.height}px`;
+      }
+    }
+    await animate(
+      ghost,
+      [
+        { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 0.95 },
+        { transform: `translate(calc(-50% + ${(tx - sx) * 0.55}px), calc(-50% + ${(ty - sy) * 0.55 - 34}px)) scale(.94) rotate(-4deg)`, opacity: 1, offset: 0.55 },
+        { transform: `translate(calc(-50% + ${tx - sx}px), calc(-50% + ${ty - sy}px)) scale(.6) rotate(3deg)`, opacity: 0.9 },
+      ],
+      { duration: 380, easing: 'cubic-bezier(.3,.7,.3,1)' }
+    );
+    ghost.remove();
+  }
+
+  /** 判定：牌从牌堆翻出，边位移边翻转入场。 */
+  async function flipInFrom(el, fromEl) {
+    if (!el || !fromEl) return;
+    const eb = el.getBoundingClientRect();
+    const fb = fromEl.getBoundingClientRect();
+    const dx = fb.left + fb.width / 2 - (eb.left + eb.width / 2);
+    const dy = fb.top + fb.height / 2 - (eb.top + eb.height / 2);
+    await animate(
+      el,
+      [
+        { opacity: 0, transform: `translate(${dx}px, ${dy}px) rotateY(84deg) scale(.8)` },
+        { opacity: 1, transform: 'translate(0, 0) rotateY(0deg) scale(1)' },
+      ],
+      { duration: 400, easing: 'cubic-bezier(.2,.7,.2,1)' }
     );
   }
 
@@ -230,11 +292,11 @@ export function createMotion({ fast = false, reduced = false } = {}) {
     spark,
     cardDrop,
     cardSlide,
+    flyClone,
+    flipInFrom,
     shake,
     pulse,
     flipIn,
-    setFast(v) { fastMode = Boolean(v); },
-    isFast() { return fastMode; },
     setReduced(v) { reduceMode = Boolean(v); },
     isReduced() { return reduceMode; },
     scale,
