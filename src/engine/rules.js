@@ -5,10 +5,22 @@ export const ROLE = {
   LONE_WOLF: 'lone_wolf',
 };
 
-/** 装备槽位结构：武器 + 双向距离 + 辅助，以及六个主动产品槽。 */
-export const SLOT_ORDER = ['weapon', 'distance_in', 'distance_out', 'support'];
-export const TASK_SLOTS = ['task_chat', 'task_code', 'task_office', 'task_tts', 'task_stt', 'task_iti'];
-export const EQUIPMENT_SLOTS = SLOT_ORDER.concat(TASK_SLOTS);
+/**
+ * 装备槽位结构（四槽）：武器（决定射程）+ 双向距离 + 产品。
+ * 产品槽一次只能装一张：RLHF 对齐（原辅助槽）与六种 Task 产品都归入这里，
+ * 装备新产品会把旧产品替换进弃牌堆。
+ */
+export const SLOT_ORDER = ['weapon', 'distance_in', 'distance_out', 'product'];
+export const EQUIPMENT_SLOTS = SLOT_ORDER;
+
+/** 产品牌 typeId 前缀 → Task 能力 id。taskUses 按能力 id 记账（每回合每种一次）。 */
+export const TASK_PREFIX = 'task_';
+
+/** 取玩家产品槽中对应 Task 能力的装备（未装备或装的是别的产品时为 null）。 */
+export function productCard(player, task) {
+  const eq = player.equipment?.product;
+  return eq && eq.typeId === `${TASK_PREFIX}${task}` ? eq : null;
+}
 
 export function hasMechanic(player, mechanic) {
   const skills = player.character?.skills ?? [];
@@ -67,11 +79,11 @@ export function attacksLeft(player) {
 
 export function handLimit(player) {
   const base = Math.max(0, player.compute);
-  return base + (player.equipment.task_chat?.params.handLimitBonus ?? 0);
+  return base + (player.equipment.product?.params.handLimitBonus ?? 0);
 }
 
 export function taskUsesLeft(player, task) {
-  const eq = player.equipment[`task_${task}`];
+  const eq = productCard(player, task);
   if (!eq) return 0;
   const perTurn = eq.params.perTurn ?? 1;
   return Math.max(0, perTurn - (player.taskUses[task] ?? 0));

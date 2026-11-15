@@ -1,12 +1,16 @@
 export function mulberry32(seed) {
   let a = seed >>> 0;
-  return function next() {
+  const next = function next() {
     a = (a + 0x6d2b79f5) >>> 0;
     let t = a;
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  // 位点存取：快照/恢复对局时保存与还原 RNG 内部状态
+  next.getState = () => a;
+  next.setState = (v) => { a = v >>> 0; };
+  return next;
 }
 
 export function shuffle(list, rand) {

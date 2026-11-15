@@ -85,7 +85,7 @@ test('前沿实验室获得 +1 算力，手牌上限随算力和 Chat 产品变�
   const lab = game.state.players.find((p) => p.role.id === rules.ROLE.LAB);
   assert.equal(lab.compute, lab.character.compute + 1);
   assert.equal(rules.handLimit(lab), lab.compute);
-  lab.equipment.task_chat = { params: { handLimitBonus: 2 } };
+  lab.equipment.product = { params: { handLimitBonus: 2 } };
   assert.equal(rules.handLimit(lab), lab.compute + 2);
 });
 

@@ -44,7 +44,8 @@ for (let seed = 1; seed <= N; seed++) {
   taskActivations += game.state.log.filter((l) => l.text.includes('【')).length;
 }
 
-const allKinds = [...new Set(data.deck.cards.map((c) => c.kind))].sort();
+// deck.json 是瘦卡（只有 typeId），牌型 kind 从 cardTypes 注册表取
+const allKinds = [...new Set(data.cardTypes.cardTypes.map((t) => t.kind))].sort();
 const allMechanics = data.characters.characters
   .flatMap((c) => (c.skills ?? []).filter((s) => s.mechanic).map((s) => ({ mechanic: s.mechanic, label: `${c.name} / ${s.name}` })))
   .sort((a, b) => a.label.localeCompare(b.label));

@@ -163,8 +163,9 @@ export async function offerDefense(game, player, prompt, source, meta = {}) {
   for (const c of defenses)
     options.push({ id: `card:${c.uid}`, label: game.cardLabel(c), cardUid: c.uid, card: c });
 
+  // 替代类效果只结算一次：RLHF 对齐装备与同名角色技能（Constitutional AI）共用同一个判定选项
   const canJudge =
-    player.equipment.support?.kind === 'barrel' || R.hasMechanic(player, 'judge_heart_as_defense');
+    player.equipment.product?.typeId === 'rlhf_alignment' || R.hasMechanic(player, 'judge_heart_as_defense');
   if (canJudge) {
     if (R.hasMechanic(player, 'judge_heart_as_defense')) game.noteSkill(player, 'judge_heart_as_defense');
     options.push({ id: 'judge', label: '进行对齐判定（♥ 视为声明）' });
@@ -188,7 +189,7 @@ export async function offerDefense(game, player, prompt, source, meta = {}) {
 
   if (id === 'pass') return false;
   if (id === 'judge') {
-    const flipped = await game.judge(player, 'barrel');
+    const flipped = await game.judge(player, 'alignment');
     const ok = flipped?.suit === 'heart';
     game.log(`${player.name} 对齐判定${ok ? '成功' : '失败'}`);
     return ok;

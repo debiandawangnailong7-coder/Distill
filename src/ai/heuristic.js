@@ -25,8 +25,7 @@ const BASE_VALUE = {
   dynamite: 1,
   weapon: 7,
   distance: 6,
-  barrel: 5,
-  task: 7,
+  product: 7,
 };
 
 const TASK_VALUE = {
@@ -195,11 +194,12 @@ function scoreWeapon(card, ctx) {
   return s;
 }
 
-function scoreTaskEquip(card, ctx) {
-  let s = TASK_VALUE[card.slot] ?? 10;
-  if (card.slot === 'task_office') s += (maxCompute(ctx.me) - ctx.me.compute) * 2;
-  if (card.slot === 'task_code' && !ctx.me.equipment.weapon) s += 6;
-  if (card.slot === 'task_iti' && !ctx.view.discardTop) s -= 8;
+function scoreProductEquip(card, ctx) {
+  let s = TASK_VALUE[card.typeId] ?? 10;
+  if (card.typeId === 'task_office') s += (maxCompute(ctx.me) - ctx.me.compute) * 2;
+  if (card.typeId === 'task_code' && !ctx.me.equipment.weapon) s += 6;
+  if (card.typeId === 'task_iti' && !ctx.view.discardTop) s -= 8;
+  if (card.typeId === 'rlhf_alignment' && ctx.counts.defense <= 1) s += 5;
   return s;
 }
 
@@ -336,10 +336,8 @@ function scoreAction(action, ctx) {
       return scoreWeapon(card, ctx);
     case 'distance':
       return card.slot === 'distance_out' && bestTargetReach(ctx, rangeOf(ctx.me)) === 0 ? 16 : 12;
-    case 'barrel':
-      return ctx.counts.defense <= 1 ? 16 : 11;
-    case 'task':
-      return scoreTaskEquip(card, ctx);
+    case 'product':
+      return scoreProductEquip(card, ctx);
     default:
       // 未覆盖的牌型给强负分，让缺漏表现为「从不出这张牌」而不是被随机噪声掷中
       return -1000;
@@ -371,7 +369,7 @@ function judgeScore(card, judgeFor, ctx) {
       return boom ? -100 : 10;
     case 'jail':
       return spade || card.suit === 'club' ? -100 : 10;
-    case 'barrel':
+    case 'alignment':
       return card.suit === 'heart' ? 100 : -10;
     case 'gamble':
       return spade ? (ctx.me.compute >= 4 && ctx.me.hand.length <= 2 ? 20 : -30) : 10;
@@ -435,7 +433,7 @@ function respondDuel(request, ctx) {
 
 function chooseSteal(request, ctx) {
   const slots = request.options.filter((o) => o.id.startsWith('slot:'));
-  const preference = ['slot:weapon', 'slot:distance_out', 'slot:distance_in', 'slot:task_code', 'slot:task_iti'];
+  const preference = ['slot:weapon', 'slot:distance_out', 'slot:distance_in', 'slot:product'];
   for (const want of preference) {
     const hit = slots.find((o) => o.id === want);
     if (hit) return { ids: [hit.id] };

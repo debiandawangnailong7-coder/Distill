@@ -12,13 +12,7 @@ export const SLOT_LABEL = {
   weapon: '基建',
   distance_in: '护城河',
   distance_out: '渠道',
-  support: '辅助',
-  task_chat: 'Chat',
-  task_code: 'Code',
-  task_office: '办公',
-  task_tts: 'TTS',
-  task_stt: 'STT',
-  task_iti: 'ITI',
+  product: '产品',
 };
 
 export function faceLabel(card) {

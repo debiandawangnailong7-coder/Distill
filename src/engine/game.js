@@ -21,7 +21,7 @@ import { playCard, activateTask, activateCharacterAbility } from './effects.js';
 const JUDGE_LABELS = {
   dynamite: 'AGI 宣言',
   jail: '账号封禁',
-  barrel: '对齐判定',
+  alignment: '对齐判定',
   gamble: '榜单刷分',
 };
 
@@ -30,11 +30,13 @@ export function createGame(config) {
 }
 
 export class Game {
-  constructor({ deck, cardTypes, characters, roles, playerCount, seed = 1, decide, onEvent, names }) {
+  constructor({ deck, cardTypes, characters, roles, playerCount, seed = 1, decide, onEvent, onDecision, names, snapshot }) {
     if (playerCount < 4 || playerCount > 7) throw new Error('人数需为 4-7');
     this.rand = mulberry32(seed);
     this.decide = decide;
     this.onEvent = onEvent ?? (() => {});
+    // 决策钩子：ask() 每拿到一个决策就上报，供时间线（timeline.js）记录转录
+    this.onDecision = onDecision ?? null;
     this.typesById = new Map(cardTypes.cardTypes.map((t) => [t.id, t]));
     this.skillNameByMechanic = new Map();
     for (const c of characters.characters) {
@@ -46,6 +48,15 @@ export class Game {
     this.characterDefs = characters.characters;
     this.playerCount = playerCount;
     this.names = names;
+
+    // 快照恢复：跳过建局，直接进入既有状态（用于从存档/回放继续）
+    if (snapshot) {
+      this.restored = true;
+      this.state = this.reviveState(snapshot.state);
+      this.rand.setState(snapshot.rngState);
+      return;
+    }
+    this.restored = false;
 
     this.state = {
       seed,
@@ -84,7 +95,6 @@ export class Game {
       return {
         index,
         name: this.names?.[index] ?? `P${index + 1}`,
-        isHuman: false,
         role,
         character,
         compute,
@@ -142,6 +152,34 @@ export class Game {
     return card;
   }
 
+  /**
+   * 快照恢复：把「瘦卡状态」（timeline.thinState 的产物）重新水合为运行时状态。
+   * 卡牌只存 uid/typeId/suit/rank/flavor，其余字段按注册表现场合并。
+   */
+  reviveState(thin) {
+    const hydrate = (c) => {
+      if (!c) return c;
+      const base = { uid: c.uid, typeId: c.typeId, suit: c.suit, rank: c.rank };
+      if (c.flavor !== undefined) base.flavor = c.flavor;
+      return this.hydrateCard(base);
+    };
+    return {
+      ...thin,
+      inPlay: { ...thin.inPlay },
+      drawPile: thin.drawPile.map(hydrate),
+      discardPile: thin.discardPile.map(hydrate),
+      players: thin.players.map((p) => ({
+        ...p,
+        hand: (p.hand ?? []).map(hydrate),
+        equipment: Object.fromEntries(
+          Object.entries(p.equipment ?? {}).map(([slot, eq]) => [slot, hydrate(eq)])
+        ),
+        jail: hydrate(p.jail),
+        dynamite: hydrate(p.dynamite),
+      })),
+    };
+  }
+
   dealStartingHands() {
     for (const p of this.state.players) {
       for (let i = 0; i < R.maxCompute(p); i++) p.hand.push(this.drawTop());
@@ -156,7 +194,13 @@ export class Game {
   // ---------------------------------------------------------------- events
 
   log(text, data) {
-    const entry = { turn: this.state.turnNumber, text, ...data };
+    // 剔除值为 undefined 的附加字段：保证日志可 JSON 往返（存档/回放）无损
+    const entry = { turn: this.state.turnNumber, text };
+    if (data) {
+      for (const [k, v] of Object.entries(data)) {
+        if (v !== undefined) entry[k] = v;
+      }
+    }
     this.state.log.push(entry);
     this.onEvent({ type: 'log', entry, state: this.state });
     return entry;
@@ -290,6 +334,7 @@ export class Game {
       rules: R,
     });
     if (!choice) throw new Error(`${player.name} 的决策返回空值 (${request.type})`);
+    this.onDecision?.({ player, request, choice });
     return choice;
   }
 
@@ -507,9 +552,8 @@ export class Game {
           actions.push({ kind: 'play_card', cardUid: card.uid, typeId: card.typeId, label: `装备 ${label}` });
           break;
         case 'distance':
-        case 'barrel':
-        case 'task':
-          // 同名槽位不叠加，占满就不再提供该行动
+        case 'product':
+          // 同槽不叠加：槽位被占就不再提供装备行动（产品槽一次一张）
           if (player.equipment[t.slot]) break;
           actions.push({ kind: 'play_card', cardUid: card.uid, typeId: card.typeId, label: `装备 ${label}` });
           break;
@@ -569,12 +613,16 @@ export class Game {
 
   async run() {
     const s = this.state;
-    this.log(`游戏开始 — ${s.playerCount} 人局，${s.players.find((p) => p.role.id === R.ROLE.LAB).name} 是公开的前沿实验室`);
-    this.emit({ type: 'gameStart' });
+    if (!this.restored) {
+      this.log(`游戏开始 — ${s.playerCount} 人局，${s.players.find((p) => p.role.id === R.ROLE.LAB).name} 是公开的前沿实验室`);
+      this.emit({ type: 'gameStart' });
+    }
 
+    let resumeTurn = this.restored; // 快照恢复：首个回合从 turnStart 相位直接继续
     while (!s.gameOver) {
       const player = s.players[s.currentPlayerIndex];
-      if (player.alive) await this.runTurnWithFollowUps(player);
+      if (player.alive) await this.runTurnWithFollowUps(player, { atTurnStart: resumeTurn });
+      resumeTurn = false;
       if (s.gameOver) break;
       do {
         s.currentPlayerIndex = (s.currentPlayerIndex + 1) % s.players.length;
@@ -589,9 +637,9 @@ export class Game {
    * 额外回合不触发自己的后续回合，避免递归。currentPlayerIndex 在额外回合期间指向豆包，
    * 让 UI 的高亮和状态栏也能正确显示；结束后再恢复到原座位，主循环继续按座位推进。
    */
-  async runTurnWithFollowUps(player) {
+  async runTurnWithFollowUps(player, { atTurnStart = false } = {}) {
     const s = this.state;
-    await this.runTurn(player);
+    await this.runTurn(player, { atTurnStart });
 
     const extra = s.players.find(
       (p) => p.alive && R.hasMechanic(p, 'extra_turn_after_each_other_turn')
@@ -606,11 +654,15 @@ export class Game {
     s.currentPlayerIndex = normalIndex;
   }
 
-  async runTurn(player, { skipJudgment = false, extra = false } = {}) {
+  async runTurn(player, { skipJudgment = false, extra = false, atTurnStart = false } = {}) {
     const s = this.state;
-    s.turnNumber++;
-    player.attacksThisTurn = 0;
-    player.taskUses = {};
+    // 恢复局的第一个回合：检查点打在 turnStart 之后（turnNumber 已自增、计数已重置），
+    // 跳过前导避免重复自增；turnStart 事件仍要发出，保持事件序号与原局一致。
+    if (!atTurnStart) {
+      s.turnNumber++;
+      player.attacksThisTurn = 0;
+      player.taskUses = {};
+    }
     this.emit({ type: 'turnStart', playerIndex: player.index, turnNumber: s.turnNumber, extra });
     this.log(
       `—— 第 ${s.turnNumber} 回合${extra ? '（额外）' : ''}：${player.name}（${player.character.name}）——`

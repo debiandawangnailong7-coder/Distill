@@ -290,7 +290,7 @@ test('Qwen「全尺寸开源」：被 TTS 夺走最后一张指控后立即补�
   const qwen = others[0];
   setChar(qwen, 'qwen2_5_72b');
   qwen.hand = [card('attack')];
-  p.equipment.task_tts = card('task_tts');
+  p.equipment.product = card('task_tts');
   g.state.drawPile = [card('defense')];
   await g.activateTask(p, 'tts', qwen.index);
   assert.equal(qwen.hand.length, 1, 'Qwen 手牌归零后应立即摸 1 张');
@@ -304,12 +304,12 @@ test('Sora「数据回收」：玩家出局时接管其手牌与装备', async (
   sora.hand = [];
   victim.hand = [card('attack'), card('defense')];
   victim.equipment.weapon = card('weapon_code_agent');
-  victim.equipment.task_iti = card('task_iti');
+  victim.equipment.product = card('task_iti');
   victim.compute = 0;
   await g.eliminate(victim, null);
   assert.equal(sora.hand.length, 2);
   assert.equal(sora.equipment.weapon.typeId, 'weapon_code_agent');
-  assert.equal(sora.equipment.task_iti.typeId, 'task_iti');
+  assert.equal(sora.equipment.product.typeId, 'task_iti');
   assert.equal(victim.hand.length, 0);
   assert.equal(g.state.discardPile.length, 0, '牌不应进入弃牌堆');
 });
@@ -457,7 +457,7 @@ test('Claude「Constitutional AI」与 RLHF 对齐都提供判定式防御', asy
   await g.offerDefense(p, '测试', g.state.players[1]);
   assert.ok(!offers[1].options.some((o) => o.id === 'judge'), '没有技能或装备时不应出现');
 
-  p.equipment.support = card('rlhf_alignment');
+  p.equipment.product = card('rlhf_alignment');
   await g.offerDefense(p, '测试', g.state.players[1]);
   assert.ok(offers[2].options.some((o) => o.id === 'judge'), 'RLHF 对齐装备应提供判定选项');
 });
@@ -485,7 +485,7 @@ test('判定 ♥ 成功抵消指控', async () => {
 
 function withTask(task, opts = {}) {
   const { g, p, others } = setup('phi_4', { hand: [], ...opts });
-  p.equipment[`task_${task}`] = card(`task_${task}`);
+  p.equipment.product = card(`task_${task}`);
   return { g, p, others };
 }
 
@@ -552,18 +552,23 @@ test('Chat 产品【用户留存】手牌上限 +2', () => {
   assert.equal(rules.handLimit(p), 5);
 });
 
-test('Task 装备占用独立槽位，可与武器和距离装备共存', () => {
+test('产品槽一次一张，可与武器和双向距离装备共存', async () => {
   const g = fixture();
   const p = g.state.players[0];
-  for (const slot of ['weapon', 'distance_in', 'distance_out', 'task_chat', 'task_code', 'task_iti']) {
+  for (const slot of ['weapon', 'distance_in', 'distance_out']) {
     p.equipment[slot] = card(
-      { weapon: 'weapon_code_agent', distance_in: 'distance_long_context', distance_out: 'distance_proprietary_channel',
-        task_chat: 'task_chat', task_code: 'task_code', task_iti: 'task_iti' }[slot]
+      { weapon: 'weapon_code_agent', distance_in: 'distance_long_context', distance_out: 'distance_proprietary_channel' }[slot]
     );
   }
-  assert.equal(Object.values(p.equipment).filter(Boolean).length, 6);
+  p.equipment.product = card('task_chat');
+  assert.equal(Object.values(p.equipment).filter(Boolean).length, 4);
   assert.equal(rules.rangeOf(p), 2);
   assert.equal(rules.handLimit(p), p.compute + 2);
+  // 产品槽换装：新产品替换旧产品，旧品进弃牌堆
+  await g.playCard(p, card('task_iti'), null);
+  assert.equal(p.equipment.product.typeId, 'task_iti');
+  assert.equal(Object.values(p.equipment).filter(Boolean).length, 4, '换装不增加槽位');
+  assert.equal(g.state.discardPile.some((c) => c.typeId === 'task_chat'), true, '旧产品进弃牌堆');
 });
 
 // ------------------------------------------------------------ 卡牌效果

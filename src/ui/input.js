@@ -82,8 +82,7 @@ export function createInput({ assets, motion, renderer, hints, getState, getUi, 
       case 'mass_heal':
         return '仅剩 2 人时不能主动使用群体回复。';
       case 'distance':
-      case 'barrel':
-      case 'task': {
+      case 'product': {
         const slot = card.slot;
         if (slot && me.equipment[slot]) {
           return `「${SLOT_LABEL[slot] ?? slot}」槽位已经有装备，同槽位不能叠放。`;

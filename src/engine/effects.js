@@ -219,8 +219,8 @@ export async function playCard(game, player, card, targetIndex, { asAttack = fal
 
     case 'weapon':
     case 'distance':
-    case 'barrel':
-    case 'task': {
+    case 'product': {
+      // 同槽替换：旧装备进弃牌堆。产品槽一次一张，装新品即换旧品。
       const replaced = player.equipment[t.slot];
       player.equipment[t.slot] = card;
       if (replaced) game.toDiscard(replaced);
@@ -252,7 +252,7 @@ export async function activateTask(game, player, task, targetIndex) {
       const target = game.player(targetIndex);
       const picked = await game.pickCards(player, '【生产力杠杆】：弃 1 张手牌当作指控', 1, 'task_discard');
       picked.forEach((c) => game.toDiscard(c));
-      game.emit({ type: 'play', playerIndex: player.index, card: player.equipment.task_code, targetIndex });
+      game.emit({ type: 'play', playerIndex: player.index, card: R.productCard(player, 'code'), targetIndex });
       game.log(`${player.name} 发动【生产力杠杆】`);
       player.attacksThisTurn++;
       await resolveAttack(game, player, target, '生产力杠杆');

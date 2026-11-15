@@ -50,12 +50,13 @@ data/roles.json ─────────────────────�
   - `request.type === 'select'`：返回 `{ ids: [...] }`，按 `request.purpose` 区分防御响应、濒死救援、弃牌、判定选牌、抢牌等。
 - `view(player)` 是 AI 唯一的信息来源，未公开身份为 `null`。AI 只通过 `TableMemory` 消费引擎广播的 `relation` 事件推断敌我，**绝不能读取 `game.state` 里的隐藏身份**。新增敌对/友好效果时调用 `noteRelation(from, to, weight)`，否则 AI 感知不到。
 - 事件流（`onEvent`）：`gameStart / turnStart / play / attack / damage / judge / draw / heal / dying / rescue / eliminated / loot / equip / reveal / relation / skill / log / gameOver / end`，事件附带 `state`。UI 动画与测试断言都依赖这些事件。
-- `rules.js` 是纯函数规则层（距离、射程、手牌上限、攻击次数、Task 次数、胜负判定）；`game.js` 只做对局编排（回合循环、阶段推进、合法行动、决策分发），战斗/生死结算在 `combat.js`、卡牌与主动产品结算在 `effects.js`——两者以 `(game, ...)` 自由函数实现，`Game` 类单行委托保持 API 稳定。`checkWinner` 中独狼「唯一存活」优先于「实验室已死」。
+- `rules.js` 是纯函数规则层（距离、射程、手牌上限、攻击次数、Task 次数、胜负判定）。装备为四槽：`weapon / distance_in / distance_out / product`，产品槽一次一张（RLHF 对齐与六种 Task 产品共用，装新品即替换旧品；替代类效果与同名技能只结算一次，修正类可叠加）。`game.js` 只做对局编排（回合循环、阶段推进、合法行动、决策分发），战斗/生死结算在 `combat.js`、卡牌与主动产品结算在 `effects.js`——两者以 `(game, ...)` 自由函数实现，`Game` 类单行委托保持 API 稳定。`checkWinner` 中独狼「唯一存活」优先于「实验室已死」。
 - 回合顺序：判定 → 摸牌 → 出牌 → 弃牌。`attacksThisTurn` 与 `taskUses` 在 `runTurn` 每回合重置。
 - 角色可以有多个机制：`character.mechanic` 是主机制，`character.mechanics` 是完整数组（目前只有豆包 Seed 使用双技能）；`hasMechanic` 同时检查两者。
 - 豆包 Seed 的「国民应用」由 `runTurnWithFollowUps` 编排：每名其他角色的正常回合结束后，插入一个 `skipJudgment: true` 的额外回合；额外回合不递归。它的「3 = 1+1」在 `runTurn` 末尾通过 `dealDamage` 结算，因此会正常触发濒死、救援和受伤事件。
 - 卡牌在运行时自描述：建局时已按注册表水合，`typeOf(card)` 直接返回卡牌自身的 `kind/params`，所以 `rules.js` 无需查询牌型注册表；但 `deck.json` 文件本身是瘦卡，别假设文件里有牌型字段。
 - 7 人局在 `buildDrawPile` 中额外洗入 4 张指控 + 4 张声明。
+- 时间线（`timeline.js`）：一局 = 「状态 i —合法行动→ 状态 i+1」的确定性链条，seed + 决策转录唯一确定一局。`record/saveGame/resume/replay` 提供纯 JSON 存档（卡牌存瘦卡、静态表不入档）、从任意回合检查点续玩（转录耗尽后交给新 decide）与整局回放。恢复局的首个回合跳过回合前导（`atTurnStart`），`log()` 剔除 undefined 附加字段保证日志可 JSON 往返；测试见 `tests/timeline.test.js`。
 
 ### AI（src/ai）
 
