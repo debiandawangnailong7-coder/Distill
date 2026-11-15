@@ -69,6 +69,7 @@
 ### 装备的进入、替换与离开
 
 - **进入**：出牌阶段打出装备牌 → `effects.playCard` 按 `kind:'weapon/distance/product'` 落槽，发 `equip` 事件。产品槽被占时 `legalActions` 不提供该行动；直接调用结算（如测试）则按同槽替换处理。
+- **同槽替换一律进弃牌堆**：任何把装备落进已占用槽位的路径——打出装备、挖角研究员偷取（`effects.js` steal 分支）、Sora「数据回收」接管死者装备（`eliminate` 的 loot）——被顶掉的旧装备都必须 `toDiscard`，不允许静默消失。
 - **被夺/被弃**：`挖角研究员`（steal）与 `律师函 C&D`（force_discard）把「手牌或任一槽位装备」作为选项下发（`slot:<槽名>`）；AI 按 `weapon > distance_out > distance_in > product` 的偏好抢夺。
 - **出局**：装备留在出局者身上直至被 Sora「数据回收」接管或击杀惩罚清空（`EQUIPMENT_SLOTS` 全槽置 null）。
 - **实验室误杀惩罚**：弃全部手牌 + 全部四槽装备（`combat.js` 的 killer 结算）。

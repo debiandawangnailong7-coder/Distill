@@ -127,8 +127,14 @@ export async function eliminate(game, victim, killer) {
   if (sora) {
     game.noteSkill(sora, 'on_eliminated_loot');
     sora.hand.push(...loot);
-    for (const { slot, card } of equip) sora.equipment[slot] = card;
-    game.log(`${sora.name}「数据回收」获得了 ${victim.name} 的全部手牌与装备`);
+    // 接管装备遵守同槽替换规则：被顶掉的旧装备进弃牌堆，不凭空消失
+    for (const { slot, card } of equip) {
+      const displaced = sora.equipment[slot];
+      sora.equipment[slot] = card;
+      if (displaced) game.toDiscard(displaced);
+    }
+    const displacedCount = equip.length + loot.length;
+    game.log(`${sora.name}「数据回收」获得了 ${victim.name} 的全部手牌与装备${displacedCount ? '' : '（无可用收获）'}`);
     game.emit({ type: 'loot', playerIndex: sora.index, fromIndex: victim.index });
   } else {
     loot.forEach((c) => game.toDiscard(c));

@@ -314,6 +314,47 @@ test('Sora「数据回收」：玩家出局时接管其手牌与装备', async (
   assert.equal(g.state.discardPile.length, 0, '牌不应进入弃牌堆');
 });
 
+test('Sora「数据回收」：同槽位顶掉的旧装备进弃牌堆，不静默消失', async () => {
+  const g = fixture();
+  const [sora, victim] = g.state.players;
+  setChar(sora, 'sora');
+  setChar(victim, 'phi_4');
+  sora.hand = [];
+  sora.equipment.weapon = card('weapon_reasoning_cluster'); // Sora 已有武器（射程 3）
+  sora.equipment.product = card('task_stt');
+  victim.hand = [card('attack')];
+  victim.equipment.weapon = card('weapon_full_stack_cloud'); // 死者武器（射程 5）
+  victim.equipment.product = card('task_iti');
+  victim.compute = 0;
+  await g.eliminate(victim, null);
+  assert.equal(sora.equipment.weapon.typeId, 'weapon_full_stack_cloud', '接管死者的武器');
+  assert.equal(sora.equipment.product.typeId, 'task_iti');
+  const discarded = g.state.discardPile.map((c) => c.typeId).sort();
+  assert.deepEqual(discarded, ['task_stt', 'weapon_reasoning_cluster'], '被顶掉的旧装备应进弃牌堆');
+});
+
+test('挖角研究员：偷取装备到自己已占用的槽位时，旧装备进弃牌堆', async () => {
+  const { g, p, others } = setup('phi_4', { hand: [] });
+  const target = others[0];
+  target.hand = [];
+  target.equipment.weapon = card('weapon_full_stack_cloud');
+  p.equipment.weapon = card('weapon_code_agent');
+  const steal = card('poach');
+  await g.playCard(p, steal, target.index);
+  assert.equal(p.equipment.weapon.typeId, 'weapon_full_stack_cloud', '偷来的武器落槽');
+  assert.equal(target.equipment.weapon, null, '目标武器被夺走');
+  assert.equal(
+    g.state.discardPile.some((c) => c.typeId === 'weapon_code_agent'),
+    true,
+    '被顶掉的旧武器应进弃牌堆'
+  );
+  assert.equal(
+    g.state.discardPile.some((c) => c.typeId === 'poach'),
+    true,
+    '挖角研究员本体进弃牌堆'
+  );
+});
+
 test('Sora「数据回收」：Sora 自己出局时不触发', async () => {
   const g = fixture();
   const [sora] = g.state.players;

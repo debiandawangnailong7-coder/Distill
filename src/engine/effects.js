@@ -171,8 +171,11 @@ export async function playCard(game, player, card, targetIndex, { asAttack = fal
       } else {
         const slot = id.slice('slot:'.length);
         const eq = target.equipment[slot];
+        // 夺来的装备落槽遵守同槽替换：自己被顶掉的旧装备进弃牌堆
+        const displaced = player.equipment[slot];
         target.equipment[slot] = null;
         player.equipment[slot] = eq;
+        if (displaced) game.toDiscard(displaced);
         game.log(`${player.name} 夺走了 ${target.name} 的「${game.typeOf(eq).name}」`);
       }
       break;
